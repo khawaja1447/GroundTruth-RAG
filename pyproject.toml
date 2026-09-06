@@ -19,10 +19,14 @@ dependencies = []
 [project.optional-dependencies]
 # Only the LLM judge needs a model.
 judge = ["anthropic>=1.0"]
+# Real semantic embeddings. Optional: the pipeline runs offline with the
+# hashing embedder, which is honestly labelled as non-semantic.
+embed = ["sentence-transformers>=3.0"]
 dev = ["pytest>=8.0", "ruff>=0.6"]
 
 [project.scripts]
 gtrag-eval = "evals.cli:main"
+gtrag = "gtrag.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src", "."]

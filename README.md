@@ -4,11 +4,12 @@ A retrieval system over corporate financial filings where **every
 architectural decision is justified by a measured delta** — and the evaluation
 harness that produces those numbers is the actual product.
 
-> **Status: Phase 2 complete.** The evaluation harness is built, tested, and
-> running. Phases 1 and 3–7 (real corpus ingestion, the retrieval ablation
-> program, serving, hardening) are in progress. See
-> [`docs/eval-methodology.md`](docs/eval-methodology.md) for the full argument
-> behind the numbers.
+> **Status: Phases 1–2 complete.** The corpus pipeline and the evaluation
+> harness are built, tested and running — 257 tests, no network, no API key.
+> Phases 3–7 (the retrieval ablation program, serving, hardening) are next.
+> See [`docs/eval-methodology.md`](docs/eval-methodology.md) for the argument
+> behind the numbers and [`docs/corpus.md`](docs/corpus.md) for the ingestion
+> design.
 
 Most RAG projects are forty lines: load PDF, split at 500 characters, embed,
 top-k, stuff into a prompt. They have no numbers, so there is nothing to
@@ -25,9 +26,18 @@ No API key, no network, no corpus needed:
 ```bash
 git clone <repo> && cd groundtruth-rag
 make install
-make test           # 144 tests, stdlib only
+make test           # 257 tests, stdlib only
 make validate       # dataset structure + corpus join
 make eval-fast      # full deterministic eval
+```
+
+To build the real corpus (the only step that needs the network):
+
+```bash
+export GTRAG_SEC_USER_AGENT="groundtruth-rag research you@example.com"
+make ingest COMPANIES=10 YEARS=3
+make index
+make query Q="What was Apple's total net revenue in fiscal 2024?"
 ```
 
 `make eval-fast` on the fixture corpus produces:
@@ -64,7 +74,21 @@ is the point of the exercise:
 ## What is actually built
 
 ```
-evals/
+src/gtrag/                # Phase 1 — the corpus pipeline and baseline
+├── ingest/
+│   ├── document.py       # document model + Span (the anchoring primitive)
+│   ├── edgar.py          # SEC client: UA enforcement, 10 req/s token bucket
+│   └── parse.py          # HTML -> text, sections (TOC trap), tables
+├── chunking/base.py      # Chunker protocol + fixed-token baseline, span-tracked
+├── index/
+│   ├── embed.py          # Embedder protocol: hashing (offline) + sentence-transformers
+│   └── store.py          # exhaustive cosine index, embedder-mismatch guard
+├── generate/generator.py # extractive (offline) + Anthropic, both refusable
+├── baseline.py           # the Phase 1 control system
+└── cli.py                # ingest / index / query / inspect
+
+evals/                    # Phase 2 — the measurement layer
+├── spans.py              # span -> per-chunking relevance resolution
 ├── types.py          # labeled-question model + the invariants that keep it honest
 ├── dataset.py        # loading, corpus join checks, composition reporting
 ├── metrics/
@@ -109,6 +133,45 @@ cheap half always available.
 bootstrap compares two configurations on the same questions, cancelling
 per-question difficulty. The ablation table marks unresolved deltas `(ns)`.
 This is the guard against shipping noise.
+
+---
+
+## Span anchoring — why the chunking ablation is possible
+
+The most consequential design decision in the project, and the one that is
+easy to get wrong in a way you do not discover until it is too late.
+
+Gold evidence is labeled by **document character span**, not by chunk id.
+Phase 3's first ablation dimension is the chunking — and if labels pointed at
+chunk ids, re-chunking would invalidate every one of them. You would have to
+re-label the whole eval set per strategy, which nobody does, so in practice
+the most valuable ablation never gets run.
+
+```
+document text   ......[=== gold span ===]...........
+chunking A      [ chunk 1 ][ chunk 2 ][ chunk 3 ]      -> chunk 2 relevant
+chunking B      [   chunk 1   ][   chunk 2   ]         -> chunk 1 relevant
+```
+
+One human labeling; both chunkings graded from it automatically. Relevance is
+graded on how much of **the span** a chunk covers, not how much of the chunk is
+gold — a 512-token chunk containing a one-sentence answer is a retrieval
+success, and grading the other way would punish exactly the large-chunk
+strategies Phase 3 needs to evaluate fairly.
+
+## Parsing filings
+
+The table-of-contents trap: "Item 1A. Risk Factors" appears in the TOC before
+it appears in the body, so a first-match parser anchors every section to the
+TOC. Measured on the test fixture, that produces sections of **21, 26 and 50
+characters** instead of 777, 758 and 996 — a corpus that looks fine and
+retrieves nothing. The parser takes the last match per item above a length
+floor, and a test guards it.
+
+SEC compliance is enforced, not assumed: a User-Agent with a contact email is
+required rather than defaulted, and the 10 req/s limit uses a token bucket
+shared across threads — a per-request `sleep` does not bound concurrent
+throughput, and there is a threaded test proving the difference.
 
 ---
 
@@ -169,6 +232,9 @@ broken judge gets through CI green.
 
 | Command | Does |
 |---|---|
+| `make ingest` | Fetch + parse filings from EDGAR (needs `GTRAG_SEC_USER_AGENT`) |
+| `make index` | Chunk + embed the document store |
+| `make query Q="…"` | Ask the baseline a question |
 | `make test` | Test suite — no key, no network |
 | `make validate` | Dataset structure + corpus join, `--strict` fails on unverified |
 | `make stats` | Slice composition against targets |

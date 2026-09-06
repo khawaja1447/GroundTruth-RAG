@@ -12,6 +12,11 @@ venv/
 # Judge response cache: large, machine-local, and regenerable.
 evals/.cache/
 
+# Ingested corpus and index: regenerable from `make ingest && make index`,
+# and far too large for git. The document store is the reproducible artifact,
+# not something to version.
+corpus/
+
 # Calibration files contain hand-entered labels -- keep the samples file, but
 # not scratch exports.
 evals/calibration/*.tmp.json

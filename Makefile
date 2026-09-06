@@ -3,10 +3,16 @@ PY      ?= python3
 DATASET ?= evals/datasets/qa_seed.jsonl
 SYSTEM  ?= gtrag.fixtures.system:FixtureRagSystem
 LABEL   ?= baseline
+COMPANIES    ?= 10
+YEARS        ?= 3
+CHUNK_TOKENS ?= 512
+EMBEDDER     ?= hashing
+Q            ?= What was total net revenue in the most recent fiscal year?
 RUN     ?= $(shell ls -t evals/results/*.json 2>/dev/null | head -1)
 
-.PHONY: help install test lint validate stats eval eval-fast baseline gate \
-        compare calibrate-export calibrate-report ablation clean
+.PHONY: help install install-judge install-embed test lint ingest index query \
+        validate stats eval eval-fast baseline gate compare calibrate-export \
+        calibrate-report ablation clean
 
 help:  ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -15,8 +21,20 @@ help:  ## Show this help
 install:  ## Install the package and dev dependencies
 	$(PY) -m pip install -e '.[dev]'
 
-install-judge:  ## Also install the Anthropic SDK (needed only for judged metrics)
+install-judge:  ## Also install the Anthropic SDK (judged metrics + real generation)
 	$(PY) -m pip install -e '.[judge,dev]'
+
+install-embed:  ## Also install sentence-transformers (real semantic embeddings)
+	$(PY) -m pip install -e '.[judge,embed,dev]'
+
+ingest:  ## Fetch and parse filings from EDGAR (needs GTRAG_SEC_USER_AGENT)
+	$(PY) -m gtrag.cli ingest --companies $(COMPANIES) --years $(YEARS)
+
+index:  ## Chunk and embed the document store into a vector index
+	$(PY) -m gtrag.cli index --chunk-tokens $(CHUNK_TOKENS) --embedder $(EMBEDDER)
+
+query:  ## Ask the baseline a question: make query Q="what was revenue?"
+	$(PY) -m gtrag.cli query "$(Q)" --embedder $(EMBEDDER)
 
 test:  ## Run the test suite (no API key, no network)
 	$(PY) -m pytest
