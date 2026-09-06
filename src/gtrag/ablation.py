@@ -40,6 +40,7 @@ from .retrieve.retrievers import (
 from .types import SystemResponse
 
 __all__ = [
+    "GENERATION_LADDER",
     "AblationConfig",
     "AblationSystem",
     "build_system",
@@ -70,6 +71,14 @@ class AblationConfig:
     retrieve_depth: int = 50
     metadata_filter: bool = False
     top_k: int = 5
+    # Phase 4 knobs.
+    context_max_tokens: int = 4000
+    deduplicate: bool = True
+    reorder: bool = True
+    rewriter: str = "none"  # none | heuristic | llm
+    refusal_signal: str = ""  # "" leaves refusal to the generator
+    refusal_threshold: float = 0.0
+    verifier: str = ""  # "" | lexical | judge
     rejected: bool = False
     note: str = ""
 
@@ -160,6 +169,30 @@ def _build_embedder(name: str) -> Embedder:
     raise ValueError(f"unknown embedder {name!r}")
 
 
+def _build_rewriter(name: str):
+    from .retrieve.rewrite import HeuristicRewriter, LLMRewriter, NullRewriter
+
+    if name in ("", "none"):
+        return NullRewriter()
+    if name == "heuristic":
+        return HeuristicRewriter()
+    if name == "llm":
+        return LLMRewriter()
+    raise ValueError(f"unknown rewriter {name!r} (have: none, heuristic, llm)")
+
+
+def _build_verifier(name: str, judge: Any = None):
+    from .generate.verify import JudgeVerifier, LexicalVerifier
+
+    if name in ("", "none"):
+        return None
+    if name == "lexical":
+        return LexicalVerifier()
+    if name == "judge":
+        return JudgeVerifier(judge=judge)
+    raise ValueError(f"unknown verifier {name!r} (have: none, lexical, judge)")
+
+
 def _build_reranker(name: str) -> Reranker:
     if name == "lexical":
         return LexicalReranker()
@@ -176,7 +209,8 @@ def build_system(
     *,
     generator: Generator | None = None,
     index_cache: dict[str, VectorIndex] | None = None,
-) -> AblationSystem:
+    judge: Any = None,
+) -> Any:
     """Assemble a system from a configuration.
 
     `index_cache` is keyed on (chunker config, embedder) so a sweep that
@@ -229,24 +263,37 @@ def build_system(
             retrieve_depth=config.retrieve_depth,
         )
 
-    resolved = {
-        "system": "ablation",
-        "label": config.label,
-        "top_k": config.top_k,
-        "corpus_chunks": len(chunks),
-        **chunker.config,
-        **retriever.config,
-    }
     generator = generator or ExtractiveGenerator()
-    resolved.update(generator.config)
 
-    return AblationSystem(
+    # Phase 4 stages. Assembled into a GroundedRagSystem, which is a strict
+    # superset of the Phase 3 system -- with every stage off it behaves
+    # identically, so the ladder stays comparable across phases.
+    from .generate.context import ContextAssembler
+    from .generate.refusal import RefusalPolicy
+    from .grounded import GroundedRagSystem
+
+    assembler = ContextAssembler(
+        max_tokens=config.context_max_tokens,
+        deduplicate=config.deduplicate,
+        reorder=config.reorder,
+    )
+    refusal = (
+        RefusalPolicy(threshold=config.refusal_threshold, signal=config.refusal_signal)
+        if config.refusal_signal
+        else None
+    )
+
+    return GroundedRagSystem(
         retriever=retriever,
         generator=generator,
         chunks=chunks,
+        assembler=assembler,
+        rewriter=_build_rewriter(config.rewriter),
+        refusal=refusal,
+        verifier=_build_verifier(config.verifier, judge=judge),
         top_k=config.top_k,
         name=config.label or "ablation",
-        _config=resolved,
+        _extra_config={"label": config.label, **chunker.config},
     )
 
 
@@ -290,5 +337,39 @@ ABLATION_LADDER: tuple[AblationConfig, ...] = (
         rerank="lexical",
         retrieve_depth=30,
         metadata_filter=True,
+    ),
+)
+
+
+# Dimension 6: the Phase 4 stages, on top of the Phase 3 winner. Each rung
+# again adds exactly one component, so the delta is attributable.
+#
+# `+ refusal (margin)` uses the threshold the refusal curve identified as the
+# best available operating point for a retrieval-derived signal. It is
+# included precisely because the curve showed that signal to be weak: the
+# ladder should show what accepting a poor separator actually costs, rather
+# than the component being dropped on the strength of one J statistic.
+_P4_BASE = {"chunker": "structure_aware", "bm25": True}
+
+GENERATION_LADDER: tuple[AblationConfig, ...] = (
+    AblationConfig(
+        label="p3 winner (no generation stages)",
+        deduplicate=False,
+        reorder=False,
+        **_P4_BASE,
+    ),
+    AblationConfig(label="+ dedup", reorder=False, **_P4_BASE),
+    AblationConfig(label="+ lost-in-the-middle order", **_P4_BASE),
+    AblationConfig(label="+ query rewriting", rewriter="heuristic", **_P4_BASE),
+    AblationConfig(
+        label="+ claim verification", rewriter="heuristic", verifier="lexical", **_P4_BASE
+    ),
+    AblationConfig(
+        label="+ refusal (margin)",
+        rewriter="heuristic",
+        verifier="lexical",
+        refusal_signal="margin",
+        refusal_threshold=0.0017,
+        **_P4_BASE,
     ),
 )

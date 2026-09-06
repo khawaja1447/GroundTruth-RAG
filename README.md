@@ -4,13 +4,12 @@ A retrieval system over corporate financial filings where **every
 architectural decision is justified by a measured delta** — and the evaluation
 harness that produces those numbers is the actual product.
 
-> **Status: Phases 1–3 complete.** Corpus pipeline, evaluation harness, and
-> the retrieval ablation program are built, tested and running — 336 tests,
-> no network, no API key. Phases 4–7 (grounded generation, serving,
-> hardening) are next. See [`docs/ablation.md`](docs/ablation.md) for the
-> ablation results and their caveats,
-> [`docs/eval-methodology.md`](docs/eval-methodology.md) for the argument
-> behind the numbers, and [`docs/corpus.md`](docs/corpus.md) for ingestion.
+> **Status: Phases 1–4 complete.** Corpus pipeline, evaluation harness, the
+> retrieval ablation program, and grounded generation are built, tested and
+> running — 399 tests, no network, no API key. Phases 5–7 (serving,
+> hardening, ship) are next. Docs: [`corpus.md`](docs/corpus.md),
+> [`eval-methodology.md`](docs/eval-methodology.md),
+> [`ablation.md`](docs/ablation.md), [`generation.md`](docs/generation.md).
 
 Most RAG projects are forty lines: load PDF, split at 500 characters, embed,
 top-k, stuff into a prompt. They have no numbers, so there is nothing to
@@ -27,7 +26,7 @@ No API key, no network, no corpus needed:
 ```bash
 git clone <repo> && cd groundtruth-rag
 make install
-make test           # 336 tests, stdlib only
+make test           # 399 tests, stdlib only
 make validate       # dataset structure + corpus join
 make eval-fast      # full deterministic eval
 ```
@@ -236,6 +235,52 @@ on incomparable scales, and normalising them is a hidden hyperparameter.
 
 ---
 
+## Grounded generation, and where refusal actually belongs
+
+```
+configuration                      answered_unans   false_refusal   fabricated
+p3 winner (no generation stages)          100.0%            0.0%         0.0%
++ dedup                                   100.0%            0.0%         0.0%
++ lost-in-the-middle order                100.0%            0.0%         0.0%
++ query rewriting                         100.0%            0.0%         0.0%
++ claim verification                      100.0%            0.0%         0.0%
++ refusal (margin)                          0.0%           69.2%         0.0%
+```
+
+**Fabricated citations are zero on every row** — Phase 4's hard gate, asserted
+by a test rather than claimed by a report. **Without a refusal policy the
+system answers 100% of unanswerable questions**, which is the hallucination
+path quantified. And **turning refusal on costs 69% false refusals** — catching
+four unanswerable questions means declining nine of thirteen answerable ones.
+
+The refusal threshold was chosen from a measured curve, as the plan required.
+The curve's verdict is that the signal is not good enough:
+
+```
+signal         best J   @ correct   @ false
+top_score      +0.019         25%       23%     (a coin flip scores 0.0)
+mean_score     +0.154        100%       85%
+margin         +0.308        100%       69%
+```
+
+No operating point exists at a 5% false-refusal ceiling on any signal, and the
+script says so and exits non-zero rather than returning a threshold that
+satisfies the constraint by refusing nothing.
+
+**The conclusion is architectural:** retrieval confidence is the wrong place to
+decide this. The retriever returns its best five chunks whether or not any of
+them answer the question. The generator sees the passage text and can tell the
+answer is not there — which is why the real generator returns a structured
+`refused` flag. That finding is the opposite of what the plan assumed when it
+said "tune the threshold".
+
+An early version of the selector returned a point with 0% correct *and* 0%
+false refusals and called it the answer. It satisfies any ceiling — by never
+refusing. A criterion satisfiable by doing nothing is not a criterion, so
+degenerate points are now rejected by default.
+
+---
+
 ## Judge calibration
 
 The differentiating piece. An uncalibrated LLM judge produces numbers that look
@@ -301,6 +346,8 @@ broken judge gets through CI green.
 | `make stats` | Slice composition against targets |
 | `make sweep` | Run the ablation ladder with deltas and power |
 | `make sweep-chunking` | Chunking sweep alone |
+| `make sweep-generation` | Phase 4 generation ladder |
+| `make refusal-curve` | Measure the refusal tradeoff, pick an operating point |
 | `make eval-fast` | Deterministic metrics only |
 | `make eval` | Full judged run |
 | `make baseline` | Promote latest run to the CI reference |

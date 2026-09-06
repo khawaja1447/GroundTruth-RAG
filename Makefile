@@ -7,11 +7,13 @@ COMPANIES    ?= 10
 YEARS        ?= 3
 CHUNK_TOKENS ?= 512
 EMBEDDER     ?= hashing
+SIGNAL              ?= margin
+MAX_FALSE_REFUSAL   ?= 0.05
 Q            ?= What was total net revenue in the most recent fiscal year?
 RUN     ?= $(shell ls -t evals/results/*.json 2>/dev/null | head -1)
 
 .PHONY: help install install-judge install-embed test lint ingest index query \
-        sweep sweep-chunking validate stats eval eval-fast baseline gate compare calibrate-export \
+        sweep sweep-chunking sweep-generation refusal-curve validate stats eval eval-fast baseline gate compare calibrate-export \
         calibrate-report ablation clean
 
 help:  ## Show this help
@@ -48,6 +50,12 @@ sweep:  ## Run the full ablation ladder (deltas + statistical power)
 
 sweep-chunking:  ## Run the chunking sweep alone (dimension 1)
 	$(PY) scripts/run_sweep.py --sweep chunking $(if $(DOCS),--docs $(DOCS),)
+
+sweep-generation:  ## Run the Phase 4 generation ladder
+	$(PY) scripts/run_sweep.py --sweep generation $(if $(DOCS),--docs $(DOCS),)
+
+refusal-curve:  ## Measure the refusal tradeoff and choose an operating point
+	$(PY) scripts/refusal_curve.py --signal $(SIGNAL) --max-false-refusal $(MAX_FALSE_REFUSAL)
 
 validate:  ## Validate the dataset's structure and its join to the corpus
 	$(PY) -m evals.cli validate --dataset $(DATASET) --corpus --strict

@@ -31,6 +31,7 @@ from evals.spans import coverage_report  # noqa: E402
 from gtrag.ablation import (  # noqa: E402
     ABLATION_LADDER,
     CHUNKING_SWEEP,
+    GENERATION_LADDER,
     AblationConfig,
     build_system,
 )
@@ -137,21 +138,38 @@ def run_one(
     result = run_eval(dataset, system, config=run_config, workers=workers)
     path = result.save(results_dir)
 
-    ndcg = result.aggregates.get("ndcg@10", {}).get("mean")
-    recall = result.aggregates.get("recall@10", {}).get("mean")
+    def mean(metric: str) -> float | None:
+        return result.aggregates.get(metric, {}).get("mean")
+
     lost = len(coverage.get("lost", []))
-    print(
-        f"  {config.label:<34} chunks={len(system.spanned_chunks):>4}  "
-        f"nDCG@10={ndcg if ndcg is None else f'{ndcg:.4f}'}  "
-        f"recall@10={recall if recall is None else f'{recall:.4f}'}"
-        + (f"  [{lost} question(s) lost evidence]" if lost else "")
-    )
+    if config in GENERATION_LADDER:
+        # Phase 4 moves generation-side behaviour, not retrieval, so the
+        # retrieval columns would be constant and uninformative here.
+        fmt = lambda v: "n/a" if v is None else f"{v:.1%}"  # noqa: E731
+        print(
+            f"  {config.label:<36} "
+            f"answered_unans={fmt(mean('answered_unanswerable')):>7}  "
+            f"false_refusal={fmt(mean('false_refusal')):>7}  "
+            f"fabricated={fmt(mean('citation_fabrication_rate')):>6}"
+        )
+    else:
+        ndcg, recall = mean("ndcg@10"), mean("recall@10")
+        print(
+            f"  {config.label:<34} chunks={len(system.spanned_chunks):>4}  "
+            f"nDCG@10={ndcg if ndcg is None else f'{ndcg:.4f}'}  "
+            f"recall@10={recall if recall is None else f'{recall:.4f}'}"
+            + (f"  [{lost} question(s) lost evidence]" if lost else "")
+        )
     return result, coverage, path
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--sweep", default="ladder", choices=["ladder", "chunking", "both"])
+    parser.add_argument(
+        "--sweep",
+        default="ladder",
+        choices=["ladder", "chunking", "generation", "both", "all"],
+    )
     parser.add_argument("--dataset", default="evals/datasets/qa_filing.jsonl")
     parser.add_argument("--docs", default=None, help="ingested document store")
     parser.add_argument("--results-dir", default="evals/results/sweep")
@@ -164,10 +182,12 @@ def main() -> int:
     print(f"dataset: {len(dataset)} questions from {args.dataset}\n")
 
     sweeps: list[tuple[str, tuple[AblationConfig, ...]]] = []
-    if args.sweep in ("chunking", "both"):
+    if args.sweep in ("chunking", "both", "all"):
         sweeps.append(("chunking (dimension 1)", CHUNKING_SWEEP))
-    if args.sweep in ("ladder", "both"):
-        sweeps.append(("ablation ladder (dimensions 1-5)", ABLATION_LADDER))
+    if args.sweep in ("ladder", "both", "all"):
+        sweeps.append(("retrieval ladder (dimensions 1-5)", ABLATION_LADDER))
+    if args.sweep in ("generation", "all"):
+        sweeps.append(("generation ladder (Phase 4)", GENERATION_LADDER))
 
     index_cache: dict = {}
     all_results: list[tuple[AblationConfig, object]] = []

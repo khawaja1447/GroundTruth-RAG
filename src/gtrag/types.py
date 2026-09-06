@@ -135,6 +135,10 @@ class SystemResponse:
     usage: Usage = field(default_factory=Usage)
     timings: dict[str, float] = field(default_factory=dict)
     error: str | None = None
+    # Per-stage trace (Phase 4). Carried into the result file so a failure
+    # can be attributed to a stage -- rewriting, assembly, refusal,
+    # verification -- without re-running the question by hand.
+    metadata: dict[str, Any] = field(default_factory=dict)
 
     @property
     def retrieved_ids(self) -> list[str]:

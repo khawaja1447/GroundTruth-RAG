@@ -130,7 +130,13 @@ class ExtractiveGenerator:
 
     name: str = "extractive"
     max_sentences: int = 3
-    min_score: float = 0.05
+    # Defaults to 0: an absolute score threshold does not transfer across
+    # retrievers. Cosine similarities sit near 0.3 while reciprocal-rank-fusion
+    # scores sit near 1/(60+rank) ~ 0.02, so any fixed cutoff that behaves
+    # sensibly for one silently refuses everything under the other. Refusal is
+    # RefusalPolicy's job (see generate/refusal.py), which calibrates its
+    # threshold against the retriever it will actually be deployed with.
+    min_score: float = 0.0
 
     @property
     def config(self) -> dict[str, Any]:
@@ -147,7 +153,7 @@ class ExtractiveGenerator:
         *,
         history: Sequence[tuple[str, str]] | None = None,
     ) -> GeneratedAnswer:
-        if not passages or passages[0].score < self.min_score:
+        if not passages or (self.min_score > 0.0 and passages[0].score < self.min_score):
             return GeneratedAnswer(
                 answer="",
                 refused=True,
