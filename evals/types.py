@@ -95,6 +95,10 @@ class EvalQuestion:
     question: str
     question_type: QuestionType
     gold_chunks: tuple[GoldChunk, ...] = ()
+    # Span-anchored evidence. Preferred over `gold_chunks` for any corpus
+    # whose chunking will change -- which is every corpus that reaches
+    # Phase 3. Chunk-id labels remain supported for fixed corpora.
+    gold_spans: tuple[Any, ...] = ()
     gold_answer: str | None = None
     difficulty: Difficulty = Difficulty.MEDIUM
     provenance: Provenance = Provenance.HAND_WRITTEN
@@ -120,12 +124,12 @@ class EvalQuestion:
             asked*; asking for clarification rather than picking one is
             correct, and confidently answering is the failure. Labeled with
             no gold chunks for the same reason.
-          * everything else -- gold chunks exist and an answer is expected.
+          * everything else -- gold evidence exists and an answer is expected.
 
         Refusal scoring and the "is this retrieval metric defined" check both
         key off this, so it must not be independently settable.
         """
-        return bool(self.gold_chunks)
+        return bool(self.gold_chunks or self.gold_spans)
 
     @property
     def verified(self) -> bool:
@@ -146,6 +150,19 @@ class EvalQuestion:
             if g.chunk_id == chunk_id:
                 return g.relevance
         return 0
+
+    def relevance_map(self, chunks: Any = None) -> dict[str, int]:
+        """`chunk_id -> relevance` for this question under a given chunking.
+
+        Span-labeled questions resolve against `chunks`; chunk-labeled ones
+        ignore it. Passing chunks for a span-labeled question and getting an
+        empty map back is meaningful: this chunking destroyed the evidence.
+        """
+        if self.gold_spans and chunks is not None:
+            from .spans import resolve_relevance
+
+            return resolve_relevance(self.gold_spans, chunks)
+        return {g.chunk_id: g.relevance for g in self.gold_chunks}
 
     # -- (de)serialization -------------------------------------------------
 
@@ -168,6 +185,9 @@ class EvalQuestion:
             GoldChunk(chunk_id=g["chunk_id"], relevance=int(g["relevance"]))
             for g in raw.get("gold_chunks", [])
         )
+        from .spans import GoldSpan
+
+        spans = tuple(GoldSpan.from_dict(g) for g in raw.get("gold_spans", []))
         history = tuple((turn["question"], turn["answer"]) for turn in raw.get("history", []))
 
         q = cls(
@@ -175,6 +195,7 @@ class EvalQuestion:
             question=str(raw.get("question", "")),
             question_type=qtype,
             gold_chunks=gold,
+            gold_spans=spans,
             gold_answer=raw.get("gold_answer"),
             difficulty=Difficulty(raw.get("difficulty", "medium")),
             provenance=Provenance(raw.get("provenance", "hand_written")),
@@ -198,6 +219,8 @@ class EvalQuestion:
                 {"chunk_id": g.chunk_id, "relevance": g.relevance} for g in self.gold_chunks
             ],
         }
+        if self.gold_spans:
+            out["gold_spans"] = [g.to_dict() for g in self.gold_spans]
         if self.gold_answer is not None:
             out["gold_answer"] = self.gold_answer
         if self.verified_by:
@@ -229,16 +252,28 @@ class EvalQuestion:
         # An `unanswerable` question must have no labels -- if the corpus does
         # answer it, the type is wrong.
         if self.question_type is QuestionType.UNANSWERABLE:
-            if self.gold_chunks:
+            if self.gold_chunks or self.gold_spans:
                 raise DatasetError(
-                    f"{where}: question_type 'unanswerable' must have no gold chunks "
-                    f"(got {len(self.gold_chunks)}). If the corpus does answer it, "
-                    f"relabel the type."
+                    f"{where}: question_type 'unanswerable' must have no gold evidence "
+                    f"(got {len(self.gold_chunks)} chunks, {len(self.gold_spans)} spans). "
+                    f"If the corpus does answer it, relabel the type."
                 )
             if self.gold_answer:
                 raise DatasetError(
                     f"{where}: question_type 'unanswerable' must not have a gold_answer"
                 )
+            return
+
+        if self.gold_spans:
+            # Span labels carry their own weight, so the relevance-2
+            # requirement is expressed as "at least one sufficient span".
+            if not any(g.max_relevance == 2 for g in self.gold_spans):
+                raise DatasetError(
+                    f"{where}: no gold span with weight 1.0. At least one span must be "
+                    f"sufficient to answer, or recall is unmeasurable."
+                )
+            if not (self.gold_answer or "").strip():
+                raise DatasetError(f"{where}: questions with gold spans need a gold_answer")
             return
 
         if self.gold_chunks:
@@ -257,7 +292,7 @@ class EvalQuestion:
         # rather than an answer.
         if self.question_type is not QuestionType.AMBIGUOUS:
             raise DatasetError(
-                f"{where}: question_type '{self.question_type.value}' has no gold chunks. "
+                f"{where}: question_type '{self.question_type.value}' has no gold evidence. "
                 f"Label it 'unanswerable' if the corpus cannot answer it, 'ambiguous' if "
                 f"it is underspecified and clarification is the correct response, or add "
                 f"the gold chunks."

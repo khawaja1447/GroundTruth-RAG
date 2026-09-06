@@ -98,7 +98,11 @@ class VectorIndex:
         added = 0
         for start in range(0, len(pending), batch_size):
             batch = pending[start : start + batch_size]
-            vectors = self.embedder.embed([c.chunk.text for c in batch])
+            # `text_to_embed`, not `chunk.text` -- sentence-window and
+            # parent-document chunking embed a narrower string than they
+            # return, and embedding the returned window instead would throw
+            # away the precision those strategies exist to buy.
+            vectors = self.embedder.embed([c.text_to_embed for c in batch])
             for spanned, vector in zip(batch, vectors, strict=True):
                 self._entries.append(
                     IndexEntry(chunk=spanned.chunk, span=spanned.span, vector=tuple(vector))

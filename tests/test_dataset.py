@@ -68,7 +68,7 @@ class TestQuestionValidation:
             EvalQuestion.from_dict(q(gold_answer=None))
 
     def test_answerable_type_without_gold_chunks_rejected(self):
-        with pytest.raises(DatasetError, match="has no gold chunks"):
+        with pytest.raises(DatasetError, match="has no gold evidence"):
             EvalQuestion.from_dict(q(gold_chunks=[], gold_answer=None))
 
 
@@ -80,7 +80,7 @@ class TestUnanswerable:
         assert not parsed.answerable
 
     def test_gold_chunks_rejected(self):
-        with pytest.raises(DatasetError, match="must have no gold chunks"):
+        with pytest.raises(DatasetError, match="must have no gold evidence"):
             EvalQuestion.from_dict(q(question_type="unanswerable", gold_answer=None))
 
     def test_gold_answer_rejected(self):

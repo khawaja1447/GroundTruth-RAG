@@ -208,13 +208,24 @@ class QuestionResult:
 
 
 def score_retrieval(
-    question: EvalQuestion, response: SystemResponse, k_values: Sequence[int], primary_k: int
+    question: EvalQuestion,
+    response: SystemResponse,
+    k_values: Sequence[int],
+    primary_k: int,
+    relevance: dict[str, int] | None = None,
 ) -> dict[str, float | None]:
-    """Deterministic retrieval metrics for one question."""
+    """Deterministic retrieval metrics for one question.
+
+    `relevance` is the resolved `chunk_id -> relevance` map. It is passed in
+    rather than read off the question because a span-labeled question has no
+    fixed answer until you know the chunking -- which is exactly what makes
+    the Phase 3 chunking ablation possible.
+    """
     retrieved = response.retrieved_ids
-    gold = question.gold_ids
-    answer_ids = question.answer_bearing_ids
-    relevance = {g.chunk_id: g.relevance for g in question.gold_chunks}
+    if relevance is None:
+        relevance = {g.chunk_id: g.relevance for g in question.gold_chunks}
+    gold = {cid for cid, rel in relevance.items() if rel >= 1}
+    answer_ids = {cid for cid, rel in relevance.items() if rel == 2}
 
     scores: dict[str, float | None] = {}
     for k in k_values:
@@ -298,6 +309,7 @@ def evaluate_question(
     *,
     k_values: Sequence[int],
     primary_k: int,
+    relevance: dict[str, int] | None = None,
 ) -> QuestionResult:
     """Run one question end to end and score it."""
     result = QuestionResult(
@@ -333,7 +345,7 @@ def evaluate_question(
         "cost_usd": response.usage.cost_usd,
     }
 
-    result.retrieval = score_retrieval(question, response, k_values, primary_k)
+    result.retrieval = score_retrieval(question, response, k_values, primary_k, relevance)
     result.refusal = gen.score_refusal(question, response.refused).to_dict()
     result.citations = gen.citation_validity(response).to_dict()
 
@@ -499,13 +511,37 @@ def run_eval(
     run_id = config_hash(config, dataset)
 
     questions = list(dataset)
+
+    # Resolve span-anchored labels against this system's actual chunking. A
+    # system that exposes `spanned_chunks` gets its span labels resolved;
+    # anything else falls back to chunk-id labels.
+    chunks = getattr(system, "spanned_chunks", None)
+    relevance_maps: dict[str, dict[str, int]] = {q.id: q.relevance_map(chunks) for q in questions}
+
+    lost = [
+        q.id for q in questions if q.gold_spans and chunks is not None and not relevance_maps[q.id]
+    ]
+    if lost:
+        # Not a retrieval result: this chunking split the evidence so that no
+        # chunk carries enough of it. Surfacing it as a warning keeps it from
+        # being misread as a worse retriever.
+        warnings.append(
+            f"{len(lost)} question(s) lost their gold evidence under this chunking "
+            f"(e.g. {', '.join(lost[:3])}); their retrieval metrics are undefined"
+        )
+
     results: list[QuestionResult] = [None] * len(questions)  # type: ignore[list-item]
     started = time.time()
 
     def work(index_and_question: tuple[int, EvalQuestion]) -> None:
         idx, q = index_and_question
         results[idx] = evaluate_question(
-            q, system, judge, k_values=config.k_values, primary_k=config.primary_k
+            q,
+            system,
+            judge,
+            k_values=config.k_values,
+            primary_k=config.primary_k,
+            relevance=relevance_maps[q.id],
         )
         if progress is not None:
             progress(sum(1 for r in results if r is not None), len(questions))

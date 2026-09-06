@@ -36,14 +36,36 @@ def approx_tokens(text: str) -> int:
 
 @dataclass(frozen=True, slots=True)
 class SpannedChunk:
-    """A chunk plus the document span it covers."""
+    """A chunk, the document span it covers, and what to embed for it.
+
+    `embed_text` exists because two of the strongest chunking strategies
+    deliberately embed one thing and return another:
+
+      * **sentence-window** embeds a single sentence for retrieval precision,
+        then returns the surrounding sentences so the model has context;
+      * **parent-document** embeds a small child chunk, then returns its
+        whole parent section.
+
+    Both are unrepresentable if the embedded text and the returned text are
+    forced to be the same string. Empty means "embed `chunk.text`", which is
+    what every simple strategy does.
+
+    The `span` always covers the **returned** text, not the embedded text:
+    the span is what gets graded against gold evidence, and what retrieval
+    actually delivers to the reader is the returned window.
+    """
 
     chunk: Chunk
     span: Span
+    embed_text: str = ""
 
     @property
     def chunk_id(self) -> str:
         return self.chunk.chunk_id
+
+    @property
+    def text_to_embed(self) -> str:
+        return self.embed_text or self.chunk.text
 
 
 class Chunker(Protocol):

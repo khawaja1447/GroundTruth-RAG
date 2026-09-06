@@ -25,6 +25,8 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 
 __all__ = [
+    "Power",
+    "paired_power",
     "Aggregate",
     "aggregate",
     "bootstrap_ci",
@@ -263,3 +265,86 @@ def paired_bootstrap(
         n_paired=n,
         n_dropped=n_dropped,
     )
+
+
+@dataclass(frozen=True, slots=True)
+class Power:
+    """How large an effect this eval set can actually resolve.
+
+    The diagnostic that turns "inconclusive" from a dead end into a number.
+    An ablation on too few questions returns inconclusive for *every* row,
+    and without this you cannot tell whether the components do nothing or the
+    eval set is simply too small to say -- which are opposite conclusions
+    with opposite next actions.
+    """
+
+    metric: str
+    n: int
+    sd: float
+    detectable_effect: float
+    target_effect: float
+    required_n: int
+
+    @property
+    def adequate(self) -> bool:
+        return self.n >= self.required_n
+
+    def format(self) -> str:
+        verdict = "adequate" if self.adequate else f"UNDERPOWERED (need ~{self.required_n})"
+        return (
+            f"{self.metric}: n={self.n}, sd={self.sd:.4f} -> can resolve "
+            f"~{self.detectable_effect:.4f}; to detect {self.target_effect:.4f}: {verdict}"
+        )
+
+    def to_dict(self) -> dict:
+        return {
+            "metric": self.metric,
+            "n": self.n,
+            "sd": self.sd,
+            "detectable_effect": self.detectable_effect,
+            "target_effect": self.target_effect,
+            "required_n": self.required_n,
+            "adequate": self.adequate,
+        }
+
+
+def paired_power(
+    metric: str,
+    baseline: dict[str, float | None],
+    candidate: dict[str, float | None],
+    *,
+    target_effect: float = 0.02,
+    z: float = 1.96,
+) -> Power | None:
+    """Estimate the smallest paired difference this set could detect.
+
+    Normal approximation on the paired differences: the 95% interval is
+    roughly +/- z * sd / sqrt(n), so an effect is resolvable when it exceeds
+    that half-width, and the n needed for a target effect is
+    `(z * sd / target)^2`.
+
+    Deliberately an estimate, not a guarantee -- the bootstrap remains the
+    thing that decides any individual comparison. This is for answering "how
+    many more questions do I need to label?", which is a planning question.
+    """
+    shared = sorted(
+        qid
+        for qid in baseline
+        if qid in candidate and baseline[qid] is not None and candidate[qid] is not None
+    )
+    if len(shared) < 2:
+        return None
+
+    diffs = [float(candidate[q]) - float(baseline[q]) for q in shared]  # type: ignore[arg-type]
+    n = len(diffs)
+    mean = sum(diffs) / n
+    variance = sum((d - mean) ** 2 for d in diffs) / (n - 1)
+    sd = variance**0.5
+
+    if sd == 0.0:
+        # Every question moved identically; any non-zero effect is resolvable.
+        return Power(metric, n, 0.0, 0.0, target_effect, 2)
+
+    detectable = z * sd / (n**0.5)
+    required = int((z * sd / target_effect) ** 2) + 1
+    return Power(metric, n, sd, detectable, target_effect, required)

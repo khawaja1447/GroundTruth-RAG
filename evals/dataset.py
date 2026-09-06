@@ -110,7 +110,7 @@ class CompositionReport:
             "answerable": self.answerable,
             "unanswerable": self.unanswerable,
             "multi_turn": self.multi_turn,
-            "mean_gold_chunks_per_answerable": round(self.mean_gold_chunks, 2),
+            "mean_gold_evidence_per_answerable": round(self.mean_gold_chunks, 2),
         }
 
 
@@ -119,7 +119,13 @@ def composition_report(dataset: Dataset) -> CompositionReport:
     diffs = Counter(q.difficulty.value for q in dataset)
     answerable = [q for q in dataset if q.answerable]
     llm_gen = [q for q in dataset if q.provenance is Provenance.LLM_GENERATED]
-    mean_gold = sum(len(q.gold_chunks) for q in answerable) / len(answerable) if answerable else 0.0
+    # Count either labeling style. A span-labeled set would otherwise report
+    # zero evidence per question and look broken.
+    mean_gold = (
+        sum(len(q.gold_chunks) + len(q.gold_spans) for q in answerable) / len(answerable)
+        if answerable
+        else 0.0
+    )
     return CompositionReport(
         total=len(dataset),
         by_type={t: types.get(t, 0) for t in QuestionType},
@@ -164,5 +170,5 @@ def format_composition(report: CompositionReport, *, targets: bool = True) -> st
             f"({report.llm_generated_verified} hand-verified)"
         )
     lines.append(f"multi-turn                : {report.multi_turn}")
-    lines.append(f"mean gold chunks (answerable): {report.mean_gold_chunks:.2f}")
+    lines.append(f"mean gold evidence (answerable): {report.mean_gold_chunks:.2f}")
     return "\n".join(lines)

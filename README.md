@@ -4,12 +4,13 @@ A retrieval system over corporate financial filings where **every
 architectural decision is justified by a measured delta** — and the evaluation
 harness that produces those numbers is the actual product.
 
-> **Status: Phases 1–2 complete.** The corpus pipeline and the evaluation
-> harness are built, tested and running — 257 tests, no network, no API key.
-> Phases 3–7 (the retrieval ablation program, serving, hardening) are next.
-> See [`docs/eval-methodology.md`](docs/eval-methodology.md) for the argument
-> behind the numbers and [`docs/corpus.md`](docs/corpus.md) for the ingestion
-> design.
+> **Status: Phases 1–3 complete.** Corpus pipeline, evaluation harness, and
+> the retrieval ablation program are built, tested and running — 336 tests,
+> no network, no API key. Phases 4–7 (grounded generation, serving,
+> hardening) are next. See [`docs/ablation.md`](docs/ablation.md) for the
+> ablation results and their caveats,
+> [`docs/eval-methodology.md`](docs/eval-methodology.md) for the argument
+> behind the numbers, and [`docs/corpus.md`](docs/corpus.md) for ingestion.
 
 Most RAG projects are forty lines: load PDF, split at 500 characters, embed,
 top-k, stuff into a prompt. They have no numbers, so there is nothing to
@@ -26,7 +27,7 @@ No API key, no network, no corpus needed:
 ```bash
 git clone <repo> && cd groundtruth-rag
 make install
-make test           # 257 tests, stdlib only
+make test           # 336 tests, stdlib only
 make validate       # dataset structure + corpus join
 make eval-fast      # full deterministic eval
 ```
@@ -175,6 +176,66 @@ throughput, and there is a threaded test proving the difference.
 
 ---
 
+## The ablation program, and the result that matters
+
+Running the full ladder on the smoke corpus, **every delta came back
+inconclusive**:
+
+```
+baseline: fixed + dense      0.7409
++ structure-aware chunking   0.7527   +0.0118 [-0.1018, +0.1171]  inconclusive
++ bm25 hybrid (RRF)          0.8297   +0.0769 [+0.0000, +0.1941]  inconclusive
++ reranking                  0.7859   -0.0438 [-0.1420, +0.0568]  inconclusive
++ metadata pre-filtering     0.8379   +0.0520 [-0.0971, +0.1728]  inconclusive
+```
+
+That is the harness working. With n=13 the interval on any paired difference
+is about ±0.11, so an 8-point move is indistinguishable from noise. Claiming
+"+7.7 points from hybrid retrieval" off this data is precisely the unearned
+result the project exists to prevent.
+
+An all-inconclusive ablation is ambiguous between "the components do nothing"
+and "the set is too small to tell" — so the harness answers that too:
+
+```
+ndcg@10:   n=13, sd=0.1952 -> can resolve ~0.106; to detect 0.020: need ~367
+recall@10: n=13, sd=0.2774 -> can resolve ~0.151; to detect 0.020: need ~739
+```
+
+The CI gate's 2-point nDCG threshold needs roughly **370 labeled questions**.
+That is a concrete next action, produced before any component decision was
+made on bad evidence.
+
+## Six chunking strategies, one labeling
+
+Because gold evidence is span-anchored, all six are graded from the same human
+labeling — `fixed`, `recursive`, `structure_aware`, `sentence_window`,
+`parent_document`, `semantic`. A test asserts the evidence resolves under every
+one of them *with disjoint chunk-id sets*, which is the property that makes the
+comparison possible at all.
+
+Two rules of `structure_aware` are asserted rather than hoped for: a table is
+never split (row labels in one chunk and figures in another answer nothing),
+and a chunk never crosses a section boundary.
+
+Retrieval composes as an expression, so each layer is independently
+measurable:
+
+```python
+RerankingRetriever(
+    FilteredRetriever(
+        HybridRetriever([DenseRetriever(index), BM25Retriever(chunks)]),
+        extractor=MetadataExtractor.from_chunks(chunks),
+    ),
+    reranker=LexicalReranker(),
+)
+```
+
+Fusion is rank-based, not score-based: BM25 scores and cosine similarities are
+on incomparable scales, and normalising them is a hidden hyperparameter.
+
+---
+
 ## Judge calibration
 
 The differentiating piece. An uncalibrated LLM judge produces numbers that look
@@ -238,6 +299,8 @@ broken judge gets through CI green.
 | `make test` | Test suite — no key, no network |
 | `make validate` | Dataset structure + corpus join, `--strict` fails on unverified |
 | `make stats` | Slice composition against targets |
+| `make sweep` | Run the ablation ladder with deltas and power |
+| `make sweep-chunking` | Chunking sweep alone |
 | `make eval-fast` | Deterministic metrics only |
 | `make eval` | Full judged run |
 | `make baseline` | Promote latest run to the CI reference |

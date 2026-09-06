@@ -11,7 +11,7 @@ Q            ?= What was total net revenue in the most recent fiscal year?
 RUN     ?= $(shell ls -t evals/results/*.json 2>/dev/null | head -1)
 
 .PHONY: help install install-judge install-embed test lint ingest index query \
-        validate stats eval eval-fast baseline gate compare calibrate-export \
+        sweep sweep-chunking validate stats eval eval-fast baseline gate compare calibrate-export \
         calibrate-report ablation clean
 
 help:  ## Show this help
@@ -42,6 +42,12 @@ test:  ## Run the test suite (no API key, no network)
 lint:  ## Lint and format-check
 	$(PY) -m ruff check src evals tests
 	$(PY) -m ruff format --check src evals tests
+
+sweep:  ## Run the full ablation ladder (deltas + statistical power)
+	$(PY) scripts/run_sweep.py --sweep both $(if $(DOCS),--docs $(DOCS),)
+
+sweep-chunking:  ## Run the chunking sweep alone (dimension 1)
+	$(PY) scripts/run_sweep.py --sweep chunking $(if $(DOCS),--docs $(DOCS),)
 
 validate:  ## Validate the dataset's structure and its join to the corpus
 	$(PY) -m evals.cli validate --dataset $(DATASET) --corpus --strict
