@@ -1,0 +1,2905 @@
+{
+  "run_id": "4d50804acf19",
+  "config": {
+    "schema": 2,
+    "dataset": "evals/datasets/qa_seed.jsonl",
+    "system": {
+      "name": "fixture-bm25",
+      "config": {
+        "retriever": "bm25",
+        "top_k": 5,
+        "k1": 1.5,
+        "b": 0.75,
+        "refusal_threshold": 2.0,
+        "corpus_size": 8,
+        "generator": "extractive"
+      }
+    },
+    "judge": {
+      "model": "null",
+      "enabled": false
+    },
+    "k_values": [
+      1,
+      5,
+      10,
+      20
+    ],
+    "primary_k": 10,
+    "bootstrap": {
+      "resamples": 10000,
+      "seed": 20260906
+    },
+    "label": "phase1-baseline-stub"
+  },
+  "provenance": {
+    "created_at": "2026-09-06T04:20:48+00:00",
+    "duration_s": 0.62,
+    "python": "3.11.15",
+    "platform": "Linux-6.18.44-fc-v24-x86_64-with-glibc2.39",
+    "workers": 4,
+    "harness_schema": 2
+  },
+  "dataset": {
+    "total": 16,
+    "by_type": {
+      "single_hop": 4,
+      "numeric_table": 3,
+      "multi_hop": 2,
+      "comparative_temporal": 3,
+      "unanswerable": 3,
+      "ambiguous": 1,
+      "adversarial": 0
+    },
+    "by_difficulty": {
+      "easy": 5,
+      "medium": 7,
+      "hard": 4
+    },
+    "verified": 16,
+    "unverified": 0,
+    "verification_rate": 1.0,
+    "llm_generated": 0,
+    "llm_generated_verified": 0,
+    "answerable": 12,
+    "unanswerable": 4,
+    "multi_turn": 1,
+    "mean_gold_chunks_per_answerable": 1.42,
+    "path": "evals/datasets/qa_seed.jsonl"
+  },
+  "aggregates": {
+    "recall@1": {
+      "metric": "recall@1",
+      "mean": 0.5833333333333334,
+      "ci_low": null,
+      "ci_high": null,
+      "n": 12,
+      "n_undefined": 4
+    },
+    "precision@1": {
+      "metric": "precision@1",
+      "mean": 0.75,
+      "ci_low": null,
+      "ci_high": null,
+      "n": 12,
+      "n_undefined": 4
+    },
+    "hit_rate@1": {
+      "metric": "hit_rate@1",
+      "mean": 0.75,
+      "ci_low": null,
+      "ci_high": null,
+      "n": 12,
+      "n_undefined": 4
+    },
+    "ndcg@1": {
+      "metric": "ndcg@1",
+      "mean": 0.75,
+      "ci_low": null,
+      "ci_high": null,
+      "n": 12,
+      "n_undefined": 4
+    },
+    "answer_recall@1": {
+      "metric": "answer_recall@1",
+      "mean": 0.6666666666666666,
+      "ci_low": null,
+      "ci_high": null,
+      "n": 12,
+      "n_undefined": 4
+    },
+    "recall@5": {
+      "metric": "recall@5",
+      "mean": 0.875,
+      "ci_low": null,
+      "ci_high": null,
+      "n": 12,
+      "n_undefined": 4
+    },
+    "precision@5": {
+      "metric": "precision@5",
+      "mean": 0.3833333333333333,
+      "ci_low": null,
+      "ci_high": null,
+      "n": 12,
+      "n_undefined": 4
+    },
+    "hit_rate@5": {
+      "metric": "hit_rate@5",
+      "mean": 0.9166666666666666,
+      "ci_low": null,
+      "ci_high": null,
+      "n": 12,
+      "n_undefined": 4
+    },
+    "ndcg@5": {
+      "metric": "ndcg@5",
+      "mean": 0.8296339828165672,
+      "ci_low": null,
+      "ci_high": null,
+      "n": 12,
+      "n_undefined": 4
+    },
+    "answer_recall@5": {
+      "metric": "answer_recall@5",
+      "mean": 0.9166666666666666,
+      "ci_low": null,
+      "ci_high": null,
+      "n": 12,
+      "n_undefined": 4
+    },
+    "recall@10": {
+      "metric": "recall@10",
+      "mean": 0.875,
+      "ci_low": 0.7083333333333334,
+      "ci_high": 1.0,
+      "n": 12,
+      "n_undefined": 4
+    },
+    "precision@10": {
+      "metric": "precision@10",
+      "mean": 0.3833333333333333,
+      "ci_low": null,
+      "ci_high": null,
+      "n": 12,
+      "n_undefined": 4
+    },
+    "hit_rate@10": {
+      "metric": "hit_rate@10",
+      "mean": 0.9166666666666666,
+      "ci_low": null,
+      "ci_high": null,
+      "n": 12,
+      "n_undefined": 4
+    },
+    "ndcg@10": {
+      "metric": "ndcg@10",
+      "mean": 0.8296339828165672,
+      "ci_low": 0.6465819441729528,
+      "ci_high": 0.9702352991591171,
+      "n": 12,
+      "n_undefined": 4
+    },
+    "answer_recall@10": {
+      "metric": "answer_recall@10",
+      "mean": 0.9166666666666666,
+      "ci_low": 0.75,
+      "ci_high": 1.0,
+      "n": 12,
+      "n_undefined": 4
+    },
+    "recall@20": {
+      "metric": "recall@20",
+      "mean": 0.875,
+      "ci_low": null,
+      "ci_high": null,
+      "n": 12,
+      "n_undefined": 4
+    },
+    "precision@20": {
+      "metric": "precision@20",
+      "mean": 0.3833333333333333,
+      "ci_low": null,
+      "ci_high": null,
+      "n": 12,
+      "n_undefined": 4
+    },
+    "hit_rate@20": {
+      "metric": "hit_rate@20",
+      "mean": 0.9166666666666666,
+      "ci_low": null,
+      "ci_high": null,
+      "n": 12,
+      "n_undefined": 4
+    },
+    "ndcg@20": {
+      "metric": "ndcg@20",
+      "mean": 0.8296339828165672,
+      "ci_low": null,
+      "ci_high": null,
+      "n": 12,
+      "n_undefined": 4
+    },
+    "answer_recall@20": {
+      "metric": "answer_recall@20",
+      "mean": 0.9166666666666666,
+      "ci_low": null,
+      "ci_high": null,
+      "n": 12,
+      "n_undefined": 4
+    },
+    "mrr": {
+      "metric": "mrr",
+      "mean": 0.8333333333333334,
+      "ci_low": 0.625,
+      "ci_high": 1.0,
+      "n": 12,
+      "n_undefined": 4
+    },
+    "answer_correctness": {
+      "metric": "answer_correctness",
+      "mean": null,
+      "ci_low": null,
+      "ci_high": null,
+      "n": 0,
+      "n_undefined": 16
+    },
+    "context_sufficiency": {
+      "metric": "context_sufficiency",
+      "mean": null,
+      "ci_low": null,
+      "ci_high": null,
+      "n": 0,
+      "n_undefined": 16
+    },
+    "groundedness": {
+      "metric": "groundedness",
+      "mean": null,
+      "ci_low": null,
+      "ci_high": null,
+      "n": 0,
+      "n_undefined": 16
+    },
+    "correct_refusal": {
+      "metric": "correct_refusal",
+      "mean": 0.0,
+      "ci_low": 0.0,
+      "ci_high": 0.0,
+      "n": 4,
+      "n_undefined": 12
+    },
+    "false_refusal": {
+      "metric": "false_refusal",
+      "mean": 0.08333333333333333,
+      "ci_low": 0.0,
+      "ci_high": 0.25,
+      "n": 12,
+      "n_undefined": 4
+    },
+    "answered_unanswerable": {
+      "metric": "answered_unanswerable",
+      "mean": 1.0,
+      "ci_low": 1.0,
+      "ci_high": 1.0,
+      "n": 4,
+      "n_undefined": 12
+    },
+    "citation_fabrication_rate": {
+      "metric": "citation_fabrication_rate",
+      "mean": 0.0,
+      "ci_low": 0.0,
+      "ci_high": 0.0,
+      "n": 15,
+      "n_undefined": 1
+    },
+    "latency_ms": {
+      "metric": "latency_ms",
+      "mean": 0.08328562505255377,
+      "ci_low": 0.05963326724582886,
+      "ci_high": 0.11512059850637968,
+      "n": 16,
+      "n_undefined": 0
+    },
+    "cost_usd": {
+      "metric": "cost_usd",
+      "mean": 0.0,
+      "ci_low": 0.0,
+      "ci_high": 0.0,
+      "n": 16,
+      "n_undefined": 0
+    }
+  },
+  "slices": {
+    "single_hop": {
+      "recall@1": {
+        "metric": "recall@1",
+        "mean": 0.75,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 4,
+        "n_undefined": 0
+      },
+      "precision@1": {
+        "metric": "precision@1",
+        "mean": 0.75,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 4,
+        "n_undefined": 0
+      },
+      "hit_rate@1": {
+        "metric": "hit_rate@1",
+        "mean": 0.75,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 4,
+        "n_undefined": 0
+      },
+      "ndcg@1": {
+        "metric": "ndcg@1",
+        "mean": 0.75,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 4,
+        "n_undefined": 0
+      },
+      "answer_recall@1": {
+        "metric": "answer_recall@1",
+        "mean": 0.75,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 4,
+        "n_undefined": 0
+      },
+      "recall@5": {
+        "metric": "recall@5",
+        "mean": 0.875,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 4,
+        "n_undefined": 0
+      },
+      "precision@5": {
+        "metric": "precision@5",
+        "mean": 0.39999999999999997,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 4,
+        "n_undefined": 0
+      },
+      "hit_rate@5": {
+        "metric": "hit_rate@5",
+        "mean": 1.0,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 4,
+        "n_undefined": 0
+      },
+      "ndcg@5": {
+        "metric": "ndcg@5",
+        "mean": 0.8803240071535801,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 4,
+        "n_undefined": 0
+      },
+      "answer_recall@5": {
+        "metric": "answer_recall@5",
+        "mean": 1.0,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 4,
+        "n_undefined": 0
+      },
+      "recall@10": {
+        "metric": "recall@10",
+        "mean": 0.875,
+        "ci_low": 0.625,
+        "ci_high": 1.0,
+        "n": 4,
+        "n_undefined": 0
+      },
+      "precision@10": {
+        "metric": "precision@10",
+        "mean": 0.39999999999999997,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 4,
+        "n_undefined": 0
+      },
+      "hit_rate@10": {
+        "metric": "hit_rate@10",
+        "mean": 1.0,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 4,
+        "n_undefined": 0
+      },
+      "ndcg@10": {
+        "metric": "ndcg@10",
+        "mean": 0.8803240071535801,
+        "ci_low": 0.64097202146074,
+        "ci_high": 1.0,
+        "n": 4,
+        "n_undefined": 0
+      },
+      "answer_recall@10": {
+        "metric": "answer_recall@10",
+        "mean": 1.0,
+        "ci_low": 1.0,
+        "ci_high": 1.0,
+        "n": 4,
+        "n_undefined": 0
+      },
+      "recall@20": {
+        "metric": "recall@20",
+        "mean": 0.875,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 4,
+        "n_undefined": 0
+      },
+      "precision@20": {
+        "metric": "precision@20",
+        "mean": 0.39999999999999997,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 4,
+        "n_undefined": 0
+      },
+      "hit_rate@20": {
+        "metric": "hit_rate@20",
+        "mean": 1.0,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 4,
+        "n_undefined": 0
+      },
+      "ndcg@20": {
+        "metric": "ndcg@20",
+        "mean": 0.8803240071535801,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 4,
+        "n_undefined": 0
+      },
+      "answer_recall@20": {
+        "metric": "answer_recall@20",
+        "mean": 1.0,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 4,
+        "n_undefined": 0
+      },
+      "mrr": {
+        "metric": "mrr",
+        "mean": 0.875,
+        "ci_low": 0.625,
+        "ci_high": 1.0,
+        "n": 4,
+        "n_undefined": 0
+      },
+      "answer_correctness": {
+        "metric": "answer_correctness",
+        "mean": null,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 0,
+        "n_undefined": 4
+      },
+      "context_sufficiency": {
+        "metric": "context_sufficiency",
+        "mean": null,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 0,
+        "n_undefined": 4
+      },
+      "groundedness": {
+        "metric": "groundedness",
+        "mean": null,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 0,
+        "n_undefined": 4
+      },
+      "correct_refusal": {
+        "metric": "correct_refusal",
+        "mean": null,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 0,
+        "n_undefined": 4
+      },
+      "false_refusal": {
+        "metric": "false_refusal",
+        "mean": 0.0,
+        "ci_low": 0.0,
+        "ci_high": 0.0,
+        "n": 4,
+        "n_undefined": 0
+      },
+      "answered_unanswerable": {
+        "metric": "answered_unanswerable",
+        "mean": null,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 0,
+        "n_undefined": 4
+      },
+      "citation_fabrication_rate": {
+        "metric": "citation_fabrication_rate",
+        "mean": 0.0,
+        "ci_low": 0.0,
+        "ci_high": 0.0,
+        "n": 4,
+        "n_undefined": 0
+      },
+      "latency_ms": {
+        "metric": "latency_ms",
+        "mean": 0.11963100007506,
+        "ci_low": 0.0534335001702857,
+        "ci_high": 0.2249270000334036,
+        "n": 4,
+        "n_undefined": 0
+      },
+      "cost_usd": {
+        "metric": "cost_usd",
+        "mean": 0.0,
+        "ci_low": 0.0,
+        "ci_high": 0.0,
+        "n": 4,
+        "n_undefined": 0
+      }
+    },
+    "numeric_table": {
+      "recall@1": {
+        "metric": "recall@1",
+        "mean": 0.3333333333333333,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 3,
+        "n_undefined": 0
+      },
+      "precision@1": {
+        "metric": "precision@1",
+        "mean": 0.3333333333333333,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 3,
+        "n_undefined": 0
+      },
+      "hit_rate@1": {
+        "metric": "hit_rate@1",
+        "mean": 0.3333333333333333,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 3,
+        "n_undefined": 0
+      },
+      "ndcg@1": {
+        "metric": "ndcg@1",
+        "mean": 0.3333333333333333,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 3,
+        "n_undefined": 0
+      },
+      "answer_recall@1": {
+        "metric": "answer_recall@1",
+        "mean": 0.3333333333333333,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 3,
+        "n_undefined": 0
+      },
+      "recall@5": {
+        "metric": "recall@5",
+        "mean": 0.6666666666666666,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 3,
+        "n_undefined": 0
+      },
+      "precision@5": {
+        "metric": "precision@5",
+        "mean": 0.13333333333333333,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 3,
+        "n_undefined": 0
+      },
+      "hit_rate@5": {
+        "metric": "hit_rate@5",
+        "mean": 0.6666666666666666,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 3,
+        "n_undefined": 0
+      },
+      "ndcg@5": {
+        "metric": "ndcg@5",
+        "mean": 0.5436432511904857,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 3,
+        "n_undefined": 0
+      },
+      "answer_recall@5": {
+        "metric": "answer_recall@5",
+        "mean": 0.6666666666666666,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 3,
+        "n_undefined": 0
+      },
+      "recall@10": {
+        "metric": "recall@10",
+        "mean": 0.6666666666666666,
+        "ci_low": 0.0,
+        "ci_high": 1.0,
+        "n": 3,
+        "n_undefined": 0
+      },
+      "precision@10": {
+        "metric": "precision@10",
+        "mean": 0.13333333333333333,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 3,
+        "n_undefined": 0
+      },
+      "hit_rate@10": {
+        "metric": "hit_rate@10",
+        "mean": 0.6666666666666666,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 3,
+        "n_undefined": 0
+      },
+      "ndcg@10": {
+        "metric": "ndcg@10",
+        "mean": 0.5436432511904857,
+        "ci_low": 0.0,
+        "ci_high": 1.0,
+        "n": 3,
+        "n_undefined": 0
+      },
+      "answer_recall@10": {
+        "metric": "answer_recall@10",
+        "mean": 0.6666666666666666,
+        "ci_low": 0.0,
+        "ci_high": 1.0,
+        "n": 3,
+        "n_undefined": 0
+      },
+      "recall@20": {
+        "metric": "recall@20",
+        "mean": 0.6666666666666666,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 3,
+        "n_undefined": 0
+      },
+      "precision@20": {
+        "metric": "precision@20",
+        "mean": 0.13333333333333333,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 3,
+        "n_undefined": 0
+      },
+      "hit_rate@20": {
+        "metric": "hit_rate@20",
+        "mean": 0.6666666666666666,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 3,
+        "n_undefined": 0
+      },
+      "ndcg@20": {
+        "metric": "ndcg@20",
+        "mean": 0.5436432511904857,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 3,
+        "n_undefined": 0
+      },
+      "answer_recall@20": {
+        "metric": "answer_recall@20",
+        "mean": 0.6666666666666666,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 3,
+        "n_undefined": 0
+      },
+      "mrr": {
+        "metric": "mrr",
+        "mean": 0.5,
+        "ci_low": 0.0,
+        "ci_high": 1.0,
+        "n": 3,
+        "n_undefined": 0
+      },
+      "answer_correctness": {
+        "metric": "answer_correctness",
+        "mean": null,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 0,
+        "n_undefined": 3
+      },
+      "context_sufficiency": {
+        "metric": "context_sufficiency",
+        "mean": null,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 0,
+        "n_undefined": 3
+      },
+      "groundedness": {
+        "metric": "groundedness",
+        "mean": null,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 0,
+        "n_undefined": 3
+      },
+      "correct_refusal": {
+        "metric": "correct_refusal",
+        "mean": null,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 0,
+        "n_undefined": 3
+      },
+      "false_refusal": {
+        "metric": "false_refusal",
+        "mean": 0.0,
+        "ci_low": 0.0,
+        "ci_high": 0.0,
+        "n": 3,
+        "n_undefined": 0
+      },
+      "answered_unanswerable": {
+        "metric": "answered_unanswerable",
+        "mean": null,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 0,
+        "n_undefined": 3
+      },
+      "citation_fabrication_rate": {
+        "metric": "citation_fabrication_rate",
+        "mean": 0.0,
+        "ci_low": 0.0,
+        "ci_high": 0.0,
+        "n": 3,
+        "n_undefined": 0
+      },
+      "latency_ms": {
+        "metric": "latency_ms",
+        "mean": 0.08141533347346315,
+        "ci_low": 0.06089200019232521,
+        "ci_high": 0.112790000230234,
+        "n": 3,
+        "n_undefined": 0
+      },
+      "cost_usd": {
+        "metric": "cost_usd",
+        "mean": 0.0,
+        "ci_low": 0.0,
+        "ci_high": 0.0,
+        "n": 3,
+        "n_undefined": 0
+      }
+    },
+    "multi_hop": {
+      "recall@1": {
+        "metric": "recall@1",
+        "mean": 0.5,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 2,
+        "n_undefined": 0
+      },
+      "precision@1": {
+        "metric": "precision@1",
+        "mean": 1.0,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 2,
+        "n_undefined": 0
+      },
+      "hit_rate@1": {
+        "metric": "hit_rate@1",
+        "mean": 1.0,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 2,
+        "n_undefined": 0
+      },
+      "ndcg@1": {
+        "metric": "ndcg@1",
+        "mean": 1.0,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 2,
+        "n_undefined": 0
+      },
+      "answer_recall@1": {
+        "metric": "answer_recall@1",
+        "mean": 0.75,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 2,
+        "n_undefined": 0
+      },
+      "recall@5": {
+        "metric": "recall@5",
+        "mean": 1.0,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 2,
+        "n_undefined": 0
+      },
+      "precision@5": {
+        "metric": "precision@5",
+        "mean": 0.4,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 2,
+        "n_undefined": 0
+      },
+      "hit_rate@5": {
+        "metric": "hit_rate@5",
+        "mean": 1.0,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 2,
+        "n_undefined": 0
+      },
+      "ndcg@5": {
+        "metric": "ndcg@5",
+        "mean": 0.9598603945740938,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 2,
+        "n_undefined": 0
+      },
+      "answer_recall@5": {
+        "metric": "answer_recall@5",
+        "mean": 1.0,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 2,
+        "n_undefined": 0
+      },
+      "recall@10": {
+        "metric": "recall@10",
+        "mean": 1.0,
+        "ci_low": 1.0,
+        "ci_high": 1.0,
+        "n": 2,
+        "n_undefined": 0
+      },
+      "precision@10": {
+        "metric": "precision@10",
+        "mean": 0.4,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 2,
+        "n_undefined": 0
+      },
+      "hit_rate@10": {
+        "metric": "hit_rate@10",
+        "mean": 1.0,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 2,
+        "n_undefined": 0
+      },
+      "ndcg@10": {
+        "metric": "ndcg@10",
+        "mean": 0.9598603945740938,
+        "ci_low": 0.9197207891481876,
+        "ci_high": 1.0,
+        "n": 2,
+        "n_undefined": 0
+      },
+      "answer_recall@10": {
+        "metric": "answer_recall@10",
+        "mean": 1.0,
+        "ci_low": 1.0,
+        "ci_high": 1.0,
+        "n": 2,
+        "n_undefined": 0
+      },
+      "recall@20": {
+        "metric": "recall@20",
+        "mean": 1.0,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 2,
+        "n_undefined": 0
+      },
+      "precision@20": {
+        "metric": "precision@20",
+        "mean": 0.4,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 2,
+        "n_undefined": 0
+      },
+      "hit_rate@20": {
+        "metric": "hit_rate@20",
+        "mean": 1.0,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 2,
+        "n_undefined": 0
+      },
+      "ndcg@20": {
+        "metric": "ndcg@20",
+        "mean": 0.9598603945740938,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 2,
+        "n_undefined": 0
+      },
+      "answer_recall@20": {
+        "metric": "answer_recall@20",
+        "mean": 1.0,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 2,
+        "n_undefined": 0
+      },
+      "mrr": {
+        "metric": "mrr",
+        "mean": 1.0,
+        "ci_low": 1.0,
+        "ci_high": 1.0,
+        "n": 2,
+        "n_undefined": 0
+      },
+      "answer_correctness": {
+        "metric": "answer_correctness",
+        "mean": null,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 0,
+        "n_undefined": 2
+      },
+      "context_sufficiency": {
+        "metric": "context_sufficiency",
+        "mean": null,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 0,
+        "n_undefined": 2
+      },
+      "groundedness": {
+        "metric": "groundedness",
+        "mean": null,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 0,
+        "n_undefined": 2
+      },
+      "correct_refusal": {
+        "metric": "correct_refusal",
+        "mean": null,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 0,
+        "n_undefined": 2
+      },
+      "false_refusal": {
+        "metric": "false_refusal",
+        "mean": 0.0,
+        "ci_low": 0.0,
+        "ci_high": 0.0,
+        "n": 2,
+        "n_undefined": 0
+      },
+      "answered_unanswerable": {
+        "metric": "answered_unanswerable",
+        "mean": null,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 0,
+        "n_undefined": 2
+      },
+      "citation_fabrication_rate": {
+        "metric": "citation_fabrication_rate",
+        "mean": 0.0,
+        "ci_low": 0.0,
+        "ci_high": 0.0,
+        "n": 2,
+        "n_undefined": 0
+      },
+      "latency_ms": {
+        "metric": "latency_ms",
+        "mean": 0.058964500112779206,
+        "ci_low": 0.05768400001215923,
+        "ci_high": 0.06024500021339918,
+        "n": 2,
+        "n_undefined": 0
+      },
+      "cost_usd": {
+        "metric": "cost_usd",
+        "mean": 0.0,
+        "ci_low": 0.0,
+        "ci_high": 0.0,
+        "n": 2,
+        "n_undefined": 0
+      }
+    },
+    "comparative_temporal": {
+      "recall@1": {
+        "metric": "recall@1",
+        "mean": 0.6666666666666666,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 3,
+        "n_undefined": 0
+      },
+      "precision@1": {
+        "metric": "precision@1",
+        "mean": 1.0,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 3,
+        "n_undefined": 0
+      },
+      "hit_rate@1": {
+        "metric": "hit_rate@1",
+        "mean": 1.0,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 3,
+        "n_undefined": 0
+      },
+      "ndcg@1": {
+        "metric": "ndcg@1",
+        "mean": 1.0,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 3,
+        "n_undefined": 0
+      },
+      "answer_recall@1": {
+        "metric": "answer_recall@1",
+        "mean": 0.8333333333333334,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 3,
+        "n_undefined": 0
+      },
+      "recall@5": {
+        "metric": "recall@5",
+        "mean": 1.0,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 3,
+        "n_undefined": 0
+      },
+      "precision@5": {
+        "metric": "precision@5",
+        "mean": 0.6,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 3,
+        "n_undefined": 0
+      },
+      "hit_rate@5": {
+        "metric": "hit_rate@5",
+        "mean": 1.0,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 3,
+        "n_undefined": 0
+      },
+      "ndcg@5": {
+        "metric": "ndcg@5",
+        "mean": 0.9612204074882803,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 3,
+        "n_undefined": 0
+      },
+      "answer_recall@5": {
+        "metric": "answer_recall@5",
+        "mean": 1.0,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 3,
+        "n_undefined": 0
+      },
+      "recall@10": {
+        "metric": "recall@10",
+        "mean": 1.0,
+        "ci_low": 1.0,
+        "ci_high": 1.0,
+        "n": 3,
+        "n_undefined": 0
+      },
+      "precision@10": {
+        "metric": "precision@10",
+        "mean": 0.6,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 3,
+        "n_undefined": 0
+      },
+      "hit_rate@10": {
+        "metric": "hit_rate@10",
+        "mean": 1.0,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 3,
+        "n_undefined": 0
+      },
+      "ndcg@10": {
+        "metric": "ndcg@10",
+        "mean": 0.9612204074882803,
+        "ci_low": 0.9197207891481876,
+        "ci_high": 1.0,
+        "n": 3,
+        "n_undefined": 0
+      },
+      "answer_recall@10": {
+        "metric": "answer_recall@10",
+        "mean": 1.0,
+        "ci_low": 1.0,
+        "ci_high": 1.0,
+        "n": 3,
+        "n_undefined": 0
+      },
+      "recall@20": {
+        "metric": "recall@20",
+        "mean": 1.0,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 3,
+        "n_undefined": 0
+      },
+      "precision@20": {
+        "metric": "precision@20",
+        "mean": 0.6,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 3,
+        "n_undefined": 0
+      },
+      "hit_rate@20": {
+        "metric": "hit_rate@20",
+        "mean": 1.0,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 3,
+        "n_undefined": 0
+      },
+      "ndcg@20": {
+        "metric": "ndcg@20",
+        "mean": 0.9612204074882803,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 3,
+        "n_undefined": 0
+      },
+      "answer_recall@20": {
+        "metric": "answer_recall@20",
+        "mean": 1.0,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 3,
+        "n_undefined": 0
+      },
+      "mrr": {
+        "metric": "mrr",
+        "mean": 1.0,
+        "ci_low": 1.0,
+        "ci_high": 1.0,
+        "n": 3,
+        "n_undefined": 0
+      },
+      "answer_correctness": {
+        "metric": "answer_correctness",
+        "mean": null,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 0,
+        "n_undefined": 3
+      },
+      "context_sufficiency": {
+        "metric": "context_sufficiency",
+        "mean": null,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 0,
+        "n_undefined": 3
+      },
+      "groundedness": {
+        "metric": "groundedness",
+        "mean": null,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 0,
+        "n_undefined": 3
+      },
+      "correct_refusal": {
+        "metric": "correct_refusal",
+        "mean": null,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 0,
+        "n_undefined": 3
+      },
+      "false_refusal": {
+        "metric": "false_refusal",
+        "mean": 0.3333333333333333,
+        "ci_low": 0.0,
+        "ci_high": 1.0,
+        "n": 3,
+        "n_undefined": 0
+      },
+      "answered_unanswerable": {
+        "metric": "answered_unanswerable",
+        "mean": null,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 0,
+        "n_undefined": 3
+      },
+      "citation_fabrication_rate": {
+        "metric": "citation_fabrication_rate",
+        "mean": 0.0,
+        "ci_low": 0.0,
+        "ci_high": 0.0,
+        "n": 2,
+        "n_undefined": 1
+      },
+      "latency_ms": {
+        "metric": "latency_ms",
+        "mean": 0.07792800003395921,
+        "ci_low": 0.017217000049640774,
+        "ci_high": 0.14950300010241335,
+        "n": 3,
+        "n_undefined": 0
+      },
+      "cost_usd": {
+        "metric": "cost_usd",
+        "mean": 0.0,
+        "ci_low": 0.0,
+        "ci_high": 0.0,
+        "n": 3,
+        "n_undefined": 0
+      }
+    },
+    "unanswerable": {
+      "recall@1": {
+        "metric": "recall@1",
+        "mean": null,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 0,
+        "n_undefined": 3
+      },
+      "precision@1": {
+        "metric": "precision@1",
+        "mean": null,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 0,
+        "n_undefined": 3
+      },
+      "hit_rate@1": {
+        "metric": "hit_rate@1",
+        "mean": null,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 0,
+        "n_undefined": 3
+      },
+      "ndcg@1": {
+        "metric": "ndcg@1",
+        "mean": null,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 0,
+        "n_undefined": 3
+      },
+      "answer_recall@1": {
+        "metric": "answer_recall@1",
+        "mean": null,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 0,
+        "n_undefined": 3
+      },
+      "recall@5": {
+        "metric": "recall@5",
+        "mean": null,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 0,
+        "n_undefined": 3
+      },
+      "precision@5": {
+        "metric": "precision@5",
+        "mean": null,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 0,
+        "n_undefined": 3
+      },
+      "hit_rate@5": {
+        "metric": "hit_rate@5",
+        "mean": null,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 0,
+        "n_undefined": 3
+      },
+      "ndcg@5": {
+        "metric": "ndcg@5",
+        "mean": null,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 0,
+        "n_undefined": 3
+      },
+      "answer_recall@5": {
+        "metric": "answer_recall@5",
+        "mean": null,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 0,
+        "n_undefined": 3
+      },
+      "recall@10": {
+        "metric": "recall@10",
+        "mean": null,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 0,
+        "n_undefined": 3
+      },
+      "precision@10": {
+        "metric": "precision@10",
+        "mean": null,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 0,
+        "n_undefined": 3
+      },
+      "hit_rate@10": {
+        "metric": "hit_rate@10",
+        "mean": null,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 0,
+        "n_undefined": 3
+      },
+      "ndcg@10": {
+        "metric": "ndcg@10",
+        "mean": null,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 0,
+        "n_undefined": 3
+      },
+      "answer_recall@10": {
+        "metric": "answer_recall@10",
+        "mean": null,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 0,
+        "n_undefined": 3
+      },
+      "recall@20": {
+        "metric": "recall@20",
+        "mean": null,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 0,
+        "n_undefined": 3
+      },
+      "precision@20": {
+        "metric": "precision@20",
+        "mean": null,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 0,
+        "n_undefined": 3
+      },
+      "hit_rate@20": {
+        "metric": "hit_rate@20",
+        "mean": null,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 0,
+        "n_undefined": 3
+      },
+      "ndcg@20": {
+        "metric": "ndcg@20",
+        "mean": null,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 0,
+        "n_undefined": 3
+      },
+      "answer_recall@20": {
+        "metric": "answer_recall@20",
+        "mean": null,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 0,
+        "n_undefined": 3
+      },
+      "mrr": {
+        "metric": "mrr",
+        "mean": null,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 0,
+        "n_undefined": 3
+      },
+      "answer_correctness": {
+        "metric": "answer_correctness",
+        "mean": null,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 0,
+        "n_undefined": 3
+      },
+      "context_sufficiency": {
+        "metric": "context_sufficiency",
+        "mean": null,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 0,
+        "n_undefined": 3
+      },
+      "groundedness": {
+        "metric": "groundedness",
+        "mean": null,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 0,
+        "n_undefined": 3
+      },
+      "correct_refusal": {
+        "metric": "correct_refusal",
+        "mean": 0.0,
+        "ci_low": 0.0,
+        "ci_high": 0.0,
+        "n": 3,
+        "n_undefined": 0
+      },
+      "false_refusal": {
+        "metric": "false_refusal",
+        "mean": null,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 0,
+        "n_undefined": 3
+      },
+      "answered_unanswerable": {
+        "metric": "answered_unanswerable",
+        "mean": 1.0,
+        "ci_low": 1.0,
+        "ci_high": 1.0,
+        "n": 3,
+        "n_undefined": 0
+      },
+      "citation_fabrication_rate": {
+        "metric": "citation_fabrication_rate",
+        "mean": 0.0,
+        "ci_low": 0.0,
+        "ci_high": 0.0,
+        "n": 3,
+        "n_undefined": 0
+      },
+      "latency_ms": {
+        "metric": "latency_ms",
+        "mean": 0.07071399992734466,
+        "ci_low": 0.05489399995894928,
+        "ci_high": 0.09518099977867678,
+        "n": 3,
+        "n_undefined": 0
+      },
+      "cost_usd": {
+        "metric": "cost_usd",
+        "mean": 0.0,
+        "ci_low": 0.0,
+        "ci_high": 0.0,
+        "n": 3,
+        "n_undefined": 0
+      }
+    },
+    "ambiguous": {
+      "recall@1": {
+        "metric": "recall@1",
+        "mean": null,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 0,
+        "n_undefined": 1
+      },
+      "precision@1": {
+        "metric": "precision@1",
+        "mean": null,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 0,
+        "n_undefined": 1
+      },
+      "hit_rate@1": {
+        "metric": "hit_rate@1",
+        "mean": null,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 0,
+        "n_undefined": 1
+      },
+      "ndcg@1": {
+        "metric": "ndcg@1",
+        "mean": null,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 0,
+        "n_undefined": 1
+      },
+      "answer_recall@1": {
+        "metric": "answer_recall@1",
+        "mean": null,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 0,
+        "n_undefined": 1
+      },
+      "recall@5": {
+        "metric": "recall@5",
+        "mean": null,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 0,
+        "n_undefined": 1
+      },
+      "precision@5": {
+        "metric": "precision@5",
+        "mean": null,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 0,
+        "n_undefined": 1
+      },
+      "hit_rate@5": {
+        "metric": "hit_rate@5",
+        "mean": null,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 0,
+        "n_undefined": 1
+      },
+      "ndcg@5": {
+        "metric": "ndcg@5",
+        "mean": null,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 0,
+        "n_undefined": 1
+      },
+      "answer_recall@5": {
+        "metric": "answer_recall@5",
+        "mean": null,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 0,
+        "n_undefined": 1
+      },
+      "recall@10": {
+        "metric": "recall@10",
+        "mean": null,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 0,
+        "n_undefined": 1
+      },
+      "precision@10": {
+        "metric": "precision@10",
+        "mean": null,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 0,
+        "n_undefined": 1
+      },
+      "hit_rate@10": {
+        "metric": "hit_rate@10",
+        "mean": null,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 0,
+        "n_undefined": 1
+      },
+      "ndcg@10": {
+        "metric": "ndcg@10",
+        "mean": null,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 0,
+        "n_undefined": 1
+      },
+      "answer_recall@10": {
+        "metric": "answer_recall@10",
+        "mean": null,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 0,
+        "n_undefined": 1
+      },
+      "recall@20": {
+        "metric": "recall@20",
+        "mean": null,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 0,
+        "n_undefined": 1
+      },
+      "precision@20": {
+        "metric": "precision@20",
+        "mean": null,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 0,
+        "n_undefined": 1
+      },
+      "hit_rate@20": {
+        "metric": "hit_rate@20",
+        "mean": null,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 0,
+        "n_undefined": 1
+      },
+      "ndcg@20": {
+        "metric": "ndcg@20",
+        "mean": null,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 0,
+        "n_undefined": 1
+      },
+      "answer_recall@20": {
+        "metric": "answer_recall@20",
+        "mean": null,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 0,
+        "n_undefined": 1
+      },
+      "mrr": {
+        "metric": "mrr",
+        "mean": null,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 0,
+        "n_undefined": 1
+      },
+      "answer_correctness": {
+        "metric": "answer_correctness",
+        "mean": null,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 0,
+        "n_undefined": 1
+      },
+      "context_sufficiency": {
+        "metric": "context_sufficiency",
+        "mean": null,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 0,
+        "n_undefined": 1
+      },
+      "groundedness": {
+        "metric": "groundedness",
+        "mean": null,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 0,
+        "n_undefined": 1
+      },
+      "correct_refusal": {
+        "metric": "correct_refusal",
+        "mean": 0.0,
+        "ci_low": 0.0,
+        "ci_high": 0.0,
+        "n": 1,
+        "n_undefined": 0
+      },
+      "false_refusal": {
+        "metric": "false_refusal",
+        "mean": null,
+        "ci_low": null,
+        "ci_high": null,
+        "n": 0,
+        "n_undefined": 1
+      },
+      "answered_unanswerable": {
+        "metric": "answered_unanswerable",
+        "mean": 1.0,
+        "ci_low": 1.0,
+        "ci_high": 1.0,
+        "n": 1,
+        "n_undefined": 0
+      },
+      "citation_fabrication_rate": {
+        "metric": "citation_fabrication_rate",
+        "mean": 0.0,
+        "ci_low": 0.0,
+        "ci_high": 0.0,
+        "n": 1,
+        "n_undefined": 0
+      },
+      "latency_ms": {
+        "metric": "latency_ms",
+        "mean": 0.04594500001076085,
+        "ci_low": 0.04594500001076085,
+        "ci_high": 0.04594500001076085,
+        "n": 1,
+        "n_undefined": 0
+      },
+      "cost_usd": {
+        "metric": "cost_usd",
+        "mean": 0.0,
+        "ci_low": 0.0,
+        "ci_high": 0.0,
+        "n": 1,
+        "n_undefined": 0
+      }
+    }
+  },
+  "per_question": [
+    {
+      "question_id": "seed-001",
+      "question_type": "single_hop",
+      "difficulty": "easy",
+      "answerable": true,
+      "question": "What was Northwind Logistics' total net revenue in fiscal 2024?",
+      "gold_answer": "Total net revenue for fiscal 2024 was $4,218 million.",
+      "answer": "Total net revenue for fiscal 2024 was $2,640 million, a decrease of 6.4% compared with $2,821 million in fiscal 2023. Results of Operations.",
+      "refused": false,
+      "retrieved_ids": [
+        "csc-2024-item7-001",
+        "nwl-2024-item7-001",
+        "nwl-2023-item7-001",
+        "nwl-2024-item1a-001",
+        "nwl-2024-item7-003"
+      ],
+      "error": null,
+      "retrieval": {
+        "recall@1": 0.0,
+        "precision@1": 0.0,
+        "hit_rate@1": 0.0,
+        "ndcg@1": 0.0,
+        "answer_recall@1": 0.0,
+        "recall@5": 0.5,
+        "precision@5": 0.2,
+        "hit_rate@5": 1.0,
+        "ndcg@5": 0.52129602861432,
+        "answer_recall@5": 1.0,
+        "recall@10": 0.5,
+        "precision@10": 0.2,
+        "hit_rate@10": 1.0,
+        "ndcg@10": 0.52129602861432,
+        "answer_recall@10": 1.0,
+        "recall@20": 0.5,
+        "precision@20": 0.2,
+        "hit_rate@20": 1.0,
+        "ndcg@20": 0.52129602861432,
+        "answer_recall@20": 1.0,
+        "mrr": 0.5,
+        "primary_ndcg": 0.52129602861432,
+        "primary_recall": 0.5
+      },
+      "refusal": {
+        "correct_refusal": null,
+        "false_refusal": false,
+        "answered_unanswerable": null
+      },
+      "citations": {
+        "total_citations": 1,
+        "resolvable": 1,
+        "fabricated": [],
+        "fabrication_rate": 0.0,
+        "uncited_answer": false
+      },
+      "answer_correctness": null,
+      "context_sufficiency": null,
+      "groundedness": null,
+      "judge_errors": [],
+      "judgments": [],
+      "timings": {
+        "retrieval": 0.14067799997974362,
+        "generation": 0.1382030000058876,
+        "total": 0.2788809999856312
+      },
+      "usage": {
+        "input_tokens": 28,
+        "output_tokens": 18,
+        "cached_input_tokens": 0,
+        "cost_usd": 0.0
+      }
+    },
+    {
+      "question_id": "seed-002",
+      "question_type": "numeric_table",
+      "difficulty": "medium",
+      "answerable": true,
+      "question": "What was Cascade Semiconductor's gross margin in fiscal 2024?",
+      "gold_answer": "Gross margin was 42.1% in fiscal 2024.",
+      "answer": "Selected financial data (in millions, except percentages):\nMeasure            | FY2024  | FY2023\nNet revenue        | 2,640   | 2,821\nGross profit       | 1,113   | 1,254\nGross margin       |  42.1%  |  44.5%\nResearch and dev. |   488   |   455",
+      "refused": false,
+      "retrieved_ids": [
+        "csc-2024-item7-002",
+        "csc-2024-item1-001",
+        "csc-2024-item7-001",
+        "nwl-2024-item7-001",
+        "nwl-2024-item7-003"
+      ],
+      "error": null,
+      "retrieval": {
+        "recall@1": 1.0,
+        "precision@1": 1.0,
+        "hit_rate@1": 1.0,
+        "ndcg@1": 1.0,
+        "answer_recall@1": 1.0,
+        "recall@5": 1.0,
+        "precision@5": 0.2,
+        "hit_rate@5": 1.0,
+        "ndcg@5": 1.0,
+        "answer_recall@5": 1.0,
+        "recall@10": 1.0,
+        "precision@10": 0.2,
+        "hit_rate@10": 1.0,
+        "ndcg@10": 1.0,
+        "answer_recall@10": 1.0,
+        "recall@20": 1.0,
+        "precision@20": 0.2,
+        "hit_rate@20": 1.0,
+        "ndcg@20": 1.0,
+        "answer_recall@20": 1.0,
+        "mrr": 1.0,
+        "primary_ndcg": 1.0,
+        "primary_recall": 1.0
+      },
+      "refusal": {
+        "correct_refusal": null,
+        "false_refusal": false,
+        "answered_unanswerable": null
+      },
+      "citations": {
+        "total_citations": 1,
+        "resolvable": 1,
+        "fabricated": [],
+        "fabrication_rate": 0.0,
+        "uncited_answer": false
+      },
+      "answer_correctness": null,
+      "context_sufficiency": null,
+      "groundedness": null,
+      "judge_errors": [],
+      "judgments": [],
+      "timings": {
+        "retrieval": 0.08053100009419722,
+        "generation": 0.032259000136036775,
+        "total": 0.112790000230234
+      },
+      "usage": {
+        "input_tokens": 29,
+        "output_tokens": 29,
+        "cached_input_tokens": 0,
+        "cost_usd": 0.0
+      }
+    },
+    {
+      "question_id": "seed-003",
+      "question_type": "numeric_table",
+      "difficulty": "medium",
+      "answerable": true,
+      "question": "How much did Cascade Semiconductor spend on research and development in fiscal 2024?",
+      "gold_answer": "Research and development expense was $488 million in fiscal 2024.",
+      "answer": "Cascade Semiconductor designs and sells analog and mixed-signal integrated circuits for industrial automation, automotive, and energy infrastructure customers. Business.",
+      "refused": false,
+      "retrieved_ids": [
+        "csc-2024-item1-001",
+        "csc-2024-item7-002",
+        "csc-2024-item7-001",
+        "nwl-2024-item7-001",
+        "nwl-2024-item7-003"
+      ],
+      "error": null,
+      "retrieval": {
+        "recall@1": 0.0,
+        "precision@1": 0.0,
+        "hit_rate@1": 0.0,
+        "ndcg@1": 0.0,
+        "answer_recall@1": 0.0,
+        "recall@5": 1.0,
+        "precision@5": 0.2,
+        "hit_rate@5": 1.0,
+        "ndcg@5": 0.6309297535714574,
+        "answer_recall@5": 1.0,
+        "recall@10": 1.0,
+        "precision@10": 0.2,
+        "hit_rate@10": 1.0,
+        "ndcg@10": 0.6309297535714574,
+        "answer_recall@10": 1.0,
+        "recall@20": 1.0,
+        "precision@20": 0.2,
+        "hit_rate@20": 1.0,
+        "ndcg@20": 0.6309297535714574,
+        "answer_recall@20": 1.0,
+        "mrr": 0.5,
+        "primary_ndcg": 0.6309297535714574,
+        "primary_recall": 1.0
+      },
+      "refusal": {
+        "correct_refusal": null,
+        "false_refusal": false,
+        "answered_unanswerable": null
+      },
+      "citations": {
+        "total_citations": 1,
+        "resolvable": 1,
+        "fabricated": [],
+        "fabrication_rate": 0.0,
+        "uncited_answer": false
+      },
+      "answer_correctness": null,
+      "context_sufficiency": null,
+      "groundedness": null,
+      "judge_errors": [],
+      "judgments": [],
+      "timings": {
+        "retrieval": 0.03226500007258437,
+        "generation": 0.028627000119740842,
+        "total": 0.06089200019232521
+      },
+      "usage": {
+        "input_tokens": 30,
+        "output_tokens": 16,
+        "cached_input_tokens": 0,
+        "cost_usd": 0.0
+      }
+    },
+    {
+      "question_id": "seed-004",
+      "question_type": "numeric_table",
+      "difficulty": "medium",
+      "answerable": true,
+      "question": "Which of Northwind's segments grew fastest in fiscal 2024, and by how much?",
+      "gold_answer": "Ground grew fastest at +12.8%, slightly ahead of Warehousing at +12.2%.",
+      "answer": "(1) Warehousing segment revenue for fiscal 2024 includes $31 million of non-recurring termination fees related to the exit of two leased facilities in the Midwest. Excluding these fees, Warehousing revenue grew 4.0%.",
+      "refused": false,
+      "retrieved_ids": [
+        "nwl-2024-item7-003",
+        "csc-2024-item7-001",
+        "nwl-2024-item7-001",
+        "nwl-2024-item1a-001",
+        "nwl-2023-item7-001"
+      ],
+      "error": null,
+      "retrieval": {
+        "recall@1": 0.0,
+        "precision@1": 0.0,
+        "hit_rate@1": 0.0,
+        "ndcg@1": 0.0,
+        "answer_recall@1": 0.0,
+        "recall@5": 0.0,
+        "precision@5": 0.0,
+        "hit_rate@5": 0.0,
+        "ndcg@5": 0.0,
+        "answer_recall@5": 0.0,
+        "recall@10": 0.0,
+        "precision@10": 0.0,
+        "hit_rate@10": 0.0,
+        "ndcg@10": 0.0,
+        "answer_recall@10": 0.0,
+        "recall@20": 0.0,
+        "precision@20": 0.0,
+        "hit_rate@20": 0.0,
+        "ndcg@20": 0.0,
+        "answer_recall@20": 0.0,
+        "mrr": 0.0,
+        "primary_ndcg": 0.0,
+        "primary_recall": 0.0
+      },
+      "refusal": {
+        "correct_refusal": null,
+        "false_refusal": false,
+        "answered_unanswerable": null
+      },
+      "citations": {
+        "total_citations": 1,
+        "resolvable": 1,
+        "fabricated": [],
+        "fabrication_rate": 0.0,
+        "uncited_answer": false
+      },
+      "answer_correctness": null,
+      "context_sufficiency": null,
+      "groundedness": null,
+      "judge_errors": [],
+      "judgments": [],
+      "timings": {
+        "retrieval": 0.03620100005718996,
+        "generation": 0.03436299994064029,
+        "total": 0.07056399999783025
+      },
+      "usage": {
+        "input_tokens": 26,
+        "output_tokens": 26,
+        "cached_input_tokens": 0,
+        "cost_usd": 0.0
+      }
+    },
+    {
+      "question_id": "seed-005",
+      "question_type": "multi_hop",
+      "difficulty": "hard",
+      "answerable": true,
+      "question": "Excluding non-recurring items, how fast did Northwind's Warehousing segment actually grow in fiscal 2024?",
+      "gold_answer": "Excluding $31 million of non-recurring termination fees, Warehousing revenue grew 4.0%, against 12.2% as reported.",
+      "answer": "(1) Warehousing segment revenue for fiscal 2024 includes $31 million of non-recurring termination fees related to the exit of two leased facilities in the Midwest. Excluding these fees, Warehousing revenue grew 4.0%.",
+      "refused": false,
+      "retrieved_ids": [
+        "nwl-2024-item7-003",
+        "nwl-2024-item7-002",
+        "nwl-2024-item7-001",
+        "nwl-2024-item1a-001",
+        "csc-2024-item7-001"
+      ],
+      "error": null,
+      "retrieval": {
+        "recall@1": 0.5,
+        "precision@1": 1.0,
+        "hit_rate@1": 1.0,
+        "ndcg@1": 1.0,
+        "answer_recall@1": 1.0,
+        "recall@5": 1.0,
+        "precision@5": 0.4,
+        "hit_rate@5": 1.0,
+        "ndcg@5": 1.0,
+        "answer_recall@5": 1.0,
+        "recall@10": 1.0,
+        "precision@10": 0.4,
+        "hit_rate@10": 1.0,
+        "ndcg@10": 1.0,
+        "answer_recall@10": 1.0,
+        "recall@20": 1.0,
+        "precision@20": 0.4,
+        "hit_rate@20": 1.0,
+        "ndcg@20": 1.0,
+        "answer_recall@20": 1.0,
+        "mrr": 1.0,
+        "primary_ndcg": 1.0,
+        "primary_recall": 1.0
+      },
+      "refusal": {
+        "correct_refusal": null,
+        "false_refusal": false,
+        "answered_unanswerable": null
+      },
+      "citations": {
+        "total_citations": 1,
+        "resolvable": 1,
+        "fabricated": [],
+        "fabrication_rate": 0.0,
+        "uncited_answer": false
+      },
+      "answer_correctness": null,
+      "context_sufficiency": null,
+      "groundedness": null,
+      "judge_errors": [],
+      "judgments": [],
+      "timings": {
+        "retrieval": 0.03464300016275956,
+        "generation": 0.025602000050639617,
+        "total": 0.06024500021339918
+      },
+      "usage": {
+        "input_tokens": 26,
+        "output_tokens": 26,
+        "cached_input_tokens": 0,
+        "cost_usd": 0.0
+      }
+    },
+    {
+      "question_id": "seed-006",
+      "question_type": "multi_hop",
+      "difficulty": "hard",
+      "answerable": true,
+      "question": "Northwind's revenue growth accelerated in fiscal 2024 compared with fiscal 2023. By how many percentage points?",
+      "gold_answer": "Growth accelerated by 7.8 percentage points, from 3.2% in fiscal 2023 to 11.0% in fiscal 2024.",
+      "answer": "Total net revenue for fiscal 2023 was $3,800 million, an increase of 3.2% compared with $3,682 million in fiscal 2022. Growth was constrained by softer industrial demand in the first half of the year.",
+      "refused": false,
+      "retrieved_ids": [
+        "nwl-2023-item7-001",
+        "csc-2024-item7-001",
+        "nwl-2024-item7-001",
+        "nwl-2024-item7-003",
+        "nwl-2024-item1a-001"
+      ],
+      "error": null,
+      "retrieval": {
+        "recall@1": 0.5,
+        "precision@1": 1.0,
+        "hit_rate@1": 1.0,
+        "ndcg@1": 1.0,
+        "answer_recall@1": 0.5,
+        "recall@5": 1.0,
+        "precision@5": 0.4,
+        "hit_rate@5": 1.0,
+        "ndcg@5": 0.9197207891481876,
+        "answer_recall@5": 1.0,
+        "recall@10": 1.0,
+        "precision@10": 0.4,
+        "hit_rate@10": 1.0,
+        "ndcg@10": 0.9197207891481876,
+        "answer_recall@10": 1.0,
+        "recall@20": 1.0,
+        "precision@20": 0.4,
+        "hit_rate@20": 1.0,
+        "ndcg@20": 0.9197207891481876,
+        "answer_recall@20": 1.0,
+        "mrr": 1.0,
+        "primary_ndcg": 0.9197207891481876,
+        "primary_recall": 1.0
+      },
+      "refusal": {
+        "correct_refusal": null,
+        "false_refusal": false,
+        "answered_unanswerable": null
+      },
+      "citations": {
+        "total_citations": 1,
+        "resolvable": 1,
+        "fabricated": [],
+        "fabrication_rate": 0.0,
+        "uncited_answer": false
+      },
+      "answer_correctness": null,
+      "context_sufficiency": null,
+      "groundedness": null,
+      "judge_errors": [],
+      "judgments": [],
+      "timings": {
+        "retrieval": 0.031061000072440947,
+        "generation": 0.026622999939718284,
+        "total": 0.05768400001215923
+      },
+      "usage": {
+        "input_tokens": 26,
+        "output_tokens": 24,
+        "cached_input_tokens": 0,
+        "cost_usd": 0.0
+      }
+    },
+    {
+      "question_id": "seed-007",
+      "question_type": "comparative_temporal",
+      "difficulty": "medium",
+      "answerable": true,
+      "question": "In fiscal 2024, which company had higher net revenue: Northwind Logistics or Cascade Semiconductor?",
+      "gold_answer": "Northwind Logistics, at $4,218 million versus Cascade Semiconductor's $2,640 million.",
+      "answer": "Total net revenue for fiscal 2024 was $4,218 million, an increase of 11.0% compared with $3,800 million in fiscal 2023. The increase was driven primarily by higher freight volumes in the Ground segment and by contractual rate escalators that took effect in the second quarter.",
+      "refused": false,
+      "retrieved_ids": [
+        "nwl-2024-item7-001",
+        "csc-2024-item1-001",
+        "csc-2024-item7-001",
+        "nwl-2024-item1a-001",
+        "nwl-2024-item7-003"
+      ],
+      "error": null,
+      "retrieval": {
+        "recall@1": 0.5,
+        "precision@1": 1.0,
+        "hit_rate@1": 1.0,
+        "ndcg@1": 1.0,
+        "answer_recall@1": 0.5,
+        "recall@5": 1.0,
+        "precision@5": 0.4,
+        "hit_rate@5": 1.0,
+        "ndcg@5": 0.9197207891481876,
+        "answer_recall@5": 1.0,
+        "recall@10": 1.0,
+        "precision@10": 0.4,
+        "hit_rate@10": 1.0,
+        "ndcg@10": 0.9197207891481876,
+        "answer_recall@10": 1.0,
+        "recall@20": 1.0,
+        "precision@20": 0.4,
+        "hit_rate@20": 1.0,
+        "ndcg@20": 0.9197207891481876,
+        "answer_recall@20": 1.0,
+        "mrr": 1.0,
+        "primary_ndcg": 0.9197207891481876,
+        "primary_recall": 1.0
+      },
+      "refusal": {
+        "correct_refusal": null,
+        "false_refusal": false,
+        "answered_unanswerable": null
+      },
+      "citations": {
+        "total_citations": 1,
+        "resolvable": 1,
+        "fabricated": [],
+        "fabrication_rate": 0.0,
+        "uncited_answer": false
+      },
+      "answer_correctness": null,
+      "context_sufficiency": null,
+      "groundedness": null,
+      "judge_errors": [],
+      "judgments": [],
+      "timings": {
+        "retrieval": 0.09644800002206466,
+        "generation": 0.05305500008034869,
+        "total": 0.14950300010241335
+      },
+      "usage": {
+        "input_tokens": 33,
+        "output_tokens": 31,
+        "cached_input_tokens": 0,
+        "cost_usd": 0.0
+      }
+    },
+    {
+      "question_id": "seed-008",
+      "question_type": "comparative_temporal",
+      "difficulty": "easy",
+      "answerable": true,
+      "question": "What was Northwind's total net revenue in fiscal 2023?",
+      "gold_answer": "Total net revenue for fiscal 2023 was $3,800 million.",
+      "answer": "Total net revenue for fiscal 2023 was $3,800 million, an increase of 3.2% compared with $3,682 million in fiscal 2022. Results of Operations.",
+      "refused": false,
+      "retrieved_ids": [
+        "nwl-2023-item7-001",
+        "csc-2024-item7-001",
+        "nwl-2024-item7-001",
+        "nwl-2024-item1a-001",
+        "nwl-2024-item7-003"
+      ],
+      "error": null,
+      "retrieval": {
+        "recall@1": 0.5,
+        "precision@1": 1.0,
+        "hit_rate@1": 1.0,
+        "ndcg@1": 1.0,
+        "answer_recall@1": 1.0,
+        "recall@5": 1.0,
+        "precision@5": 0.4,
+        "hit_rate@5": 1.0,
+        "ndcg@5": 0.9639404333166532,
+        "answer_recall@5": 1.0,
+        "recall@10": 1.0,
+        "precision@10": 0.4,
+        "hit_rate@10": 1.0,
+        "ndcg@10": 0.9639404333166532,
+        "answer_recall@10": 1.0,
+        "recall@20": 1.0,
+        "precision@20": 0.4,
+        "hit_rate@20": 1.0,
+        "ndcg@20": 0.9639404333166532,
+        "answer_recall@20": 1.0,
+        "mrr": 1.0,
+        "primary_ndcg": 0.9639404333166532,
+        "primary_recall": 1.0
+      },
+      "refusal": {
+        "correct_refusal": null,
+        "false_refusal": false,
+        "answered_unanswerable": null
+      },
+      "citations": {
+        "total_citations": 1,
+        "resolvable": 1,
+        "fabricated": [],
+        "fabrication_rate": 0.0,
+        "uncited_answer": false
+      },
+      "answer_correctness": null,
+      "context_sufficiency": null,
+      "groundedness": null,
+      "judge_errors": [],
+      "judgments": [],
+      "timings": {
+        "retrieval": 0.03558399998837558,
+        "generation": 0.0314799999614479,
+        "total": 0.06706399994982348
+      },
+      "usage": {
+        "input_tokens": 26,
+        "output_tokens": 18,
+        "cached_input_tokens": 0,
+        "cost_usd": 0.0
+      }
+    },
+    {
+      "question_id": "seed-009",
+      "question_type": "single_hop",
+      "difficulty": "easy",
+      "answerable": true,
+      "question": "What proportion of Northwind's consolidated net revenue came from its three largest customers in fiscal 2024?",
+      "gold_answer": "Approximately 28% of consolidated net revenue.",
+      "answer": "In fiscal 2024, our three largest customers accounted for approximately 28% of consolidated net revenue. A significant portion of our Ground segment revenue is concentrated among a small number of customers.",
+      "refused": false,
+      "retrieved_ids": [
+        "nwl-2024-item1a-001",
+        "csc-2024-item7-001",
+        "nwl-2024-item7-001",
+        "nwl-2024-item7-003",
+        "nwl-2023-item7-001"
+      ],
+      "error": null,
+      "retrieval": {
+        "recall@1": 1.0,
+        "precision@1": 1.0,
+        "hit_rate@1": 1.0,
+        "ndcg@1": 1.0,
+        "answer_recall@1": 1.0,
+        "recall@5": 1.0,
+        "precision@5": 0.2,
+        "hit_rate@5": 1.0,
+        "ndcg@5": 1.0,
+        "answer_recall@5": 1.0,
+        "recall@10": 1.0,
+        "precision@10": 0.2,
+        "hit_rate@10": 1.0,
+        "ndcg@10": 1.0,
+        "answer_recall@10": 1.0,
+        "recall@20": 1.0,
+        "precision@20": 0.2,
+        "hit_rate@20": 1.0,
+        "ndcg@20": 1.0,
+        "answer_recall@20": 1.0,
+        "mrr": 1.0,
+        "primary_ndcg": 1.0,
+        "primary_recall": 1.0
+      },
+      "refusal": {
+        "correct_refusal": null,
+        "false_refusal": false,
+        "answered_unanswerable": null
+      },
+      "citations": {
+        "total_citations": 1,
+        "resolvable": 1,
+        "fabricated": [],
+        "fabrication_rate": 0.0,
+        "uncited_answer": false
+      },
+      "answer_correctness": null,
+      "context_sufficiency": null,
+      "groundedness": null,
+      "judge_errors": [],
+      "judgments": [],
+      "timings": {
+        "retrieval": 0.0320230001307209,
+        "generation": 0.031042000045999885,
+        "total": 0.06306500017672079
+      },
+      "usage": {
+        "input_tokens": 35,
+        "output_tokens": 23,
+        "cached_input_tokens": 0,
+        "cost_usd": 0.0
+      }
+    },
+    {
+      "question_id": "seed-010",
+      "question_type": "single_hop",
+      "difficulty": "easy",
+      "answerable": true,
+      "question": "Where is Cascade Semiconductor's wafer fabrication facility located?",
+      "gold_answer": "Cascade operates one wafer fabrication facility in Oregon.",
+      "answer": "We operate one wafer fabrication facility in Oregon and rely on third-party foundries for advanced process nodes. Cascade Semiconductor designs and sells analog and mixed-signal integrated circuits for industrial automation, automotive, and energy infrastructure customers.",
+      "refused": false,
+      "retrieved_ids": [
+        "csc-2024-item1-001"
+      ],
+      "error": null,
+      "retrieval": {
+        "recall@1": 1.0,
+        "precision@1": 1.0,
+        "hit_rate@1": 1.0,
+        "ndcg@1": 1.0,
+        "answer_recall@1": 1.0,
+        "recall@5": 1.0,
+        "precision@5": 1.0,
+        "hit_rate@5": 1.0,
+        "ndcg@5": 1.0,
+        "answer_recall@5": 1.0,
+        "recall@10": 1.0,
+        "precision@10": 1.0,
+        "hit_rate@10": 1.0,
+        "ndcg@10": 1.0,
+        "answer_recall@10": 1.0,
+        "recall@20": 1.0,
+        "precision@20": 1.0,
+        "hit_rate@20": 1.0,
+        "ndcg@20": 1.0,
+        "answer_recall@20": 1.0,
+        "mrr": 1.0,
+        "primary_ndcg": 1.0,
+        "primary_recall": 1.0
+      },
+      "refusal": {
+        "correct_refusal": null,
+        "false_refusal": false,
+        "answered_unanswerable": null
+      },
+      "citations": {
+        "total_citations": 1,
+        "resolvable": 1,
+        "fabricated": [],
+        "fabrication_rate": 0.0,
+        "uncited_answer": false
+      },
+      "answer_correctness": null,
+      "context_sufficiency": null,
+      "groundedness": null,
+      "judge_errors": [],
+      "judgments": [],
+      "timings": {
+        "retrieval": 0.019737000002351124,
+        "generation": 0.024065000161499484,
+        "total": 0.04380200016385061
+      },
+      "usage": {
+        "input_tokens": 30,
+        "output_tokens": 29,
+        "cached_input_tokens": 0,
+        "cost_usd": 0.0
+      }
+    },
+    {
+      "question_id": "seed-011",
+      "question_type": "single_hop",
+      "difficulty": "medium",
+      "answerable": true,
+      "question": "Why did Cascade Semiconductor's revenue decline in fiscal 2024?",
+      "gold_answer": "Revenue fell 6.4% because distribution partners in the industrial end market were correcting inventory.",
+      "answer": "Total net revenue for fiscal 2024 was $2,640 million, a decrease of 6.4% compared with $2,821 million in fiscal 2023. The decline reflected inventory correction among distribution partners in the industrial end market.",
+      "refused": false,
+      "retrieved_ids": [
+        "csc-2024-item7-001",
+        "csc-2024-item1-001",
+        "nwl-2024-item7-003",
+        "nwl-2024-item7-001",
+        "nwl-2024-item1a-001"
+      ],
+      "error": null,
+      "retrieval": {
+        "recall@1": 1.0,
+        "precision@1": 1.0,
+        "hit_rate@1": 1.0,
+        "ndcg@1": 1.0,
+        "answer_recall@1": 1.0,
+        "recall@5": 1.0,
+        "precision@5": 0.2,
+        "hit_rate@5": 1.0,
+        "ndcg@5": 1.0,
+        "answer_recall@5": 1.0,
+        "recall@10": 1.0,
+        "precision@10": 0.2,
+        "hit_rate@10": 1.0,
+        "ndcg@10": 1.0,
+        "answer_recall@10": 1.0,
+        "recall@20": 1.0,
+        "precision@20": 0.2,
+        "hit_rate@20": 1.0,
+        "ndcg@20": 1.0,
+        "answer_recall@20": 1.0,
+        "mrr": 1.0,
+        "primary_ndcg": 1.0,
+        "primary_recall": 1.0
+      },
+      "refusal": {
+        "correct_refusal": null,
+        "false_refusal": false,
+        "answered_unanswerable": null
+      },
+      "citations": {
+        "total_citations": 1,
+        "resolvable": 1,
+        "fabricated": [],
+        "fabrication_rate": 0.0,
+        "uncited_answer": false
+      },
+      "answer_correctness": null,
+      "context_sufficiency": null,
+      "groundedness": null,
+      "judge_errors": [],
+      "judgments": [],
+      "timings": {
+        "retrieval": 0.05770400002802489,
+        "generation": 0.03507199994601251,
+        "total": 0.0927759999740374
+      },
+      "usage": {
+        "input_tokens": 28,
+        "output_tokens": 26,
+        "cached_input_tokens": 0,
+        "cost_usd": 0.0
+      }
+    },
+    {
+      "question_id": "seed-012",
+      "question_type": "unanswerable",
+      "difficulty": "medium",
+      "answerable": false,
+      "question": "How many employees did Northwind Logistics have at the end of fiscal 2024?",
+      "gold_answer": null,
+      "answer": "Total net revenue for fiscal 2024 was $2,640 million, a decrease of 6.4% compared with $2,821 million in fiscal 2023. The decline reflected inventory correction among distribution partners in the industrial end market.",
+      "refused": false,
+      "retrieved_ids": [
+        "csc-2024-item7-001",
+        "nwl-2024-item7-001",
+        "nwl-2024-item7-003",
+        "nwl-2024-item1a-001",
+        "nwl-2023-item7-001"
+      ],
+      "error": null,
+      "retrieval": {
+        "recall@1": null,
+        "precision@1": null,
+        "hit_rate@1": null,
+        "ndcg@1": null,
+        "answer_recall@1": null,
+        "recall@5": null,
+        "precision@5": null,
+        "hit_rate@5": null,
+        "ndcg@5": null,
+        "answer_recall@5": null,
+        "recall@10": null,
+        "precision@10": null,
+        "hit_rate@10": null,
+        "ndcg@10": null,
+        "answer_recall@10": null,
+        "recall@20": null,
+        "precision@20": null,
+        "hit_rate@20": null,
+        "ndcg@20": null,
+        "answer_recall@20": null,
+        "mrr": null,
+        "primary_ndcg": null,
+        "primary_recall": null
+      },
+      "refusal": {
+        "correct_refusal": false,
+        "false_refusal": null,
+        "answered_unanswerable": true
+      },
+      "citations": {
+        "total_citations": 1,
+        "resolvable": 1,
+        "fabricated": [],
+        "fabrication_rate": 0.0,
+        "uncited_answer": false
+      },
+      "answer_correctness": null,
+      "context_sufficiency": null,
+      "groundedness": null,
+      "judge_errors": [],
+      "judgments": [],
+      "timings": {
+        "retrieval": 0.029835000077582663,
+        "generation": 0.025058999881366617,
+        "total": 0.05489399995894928
+      },
+      "usage": {
+        "input_tokens": 28,
+        "output_tokens": 26,
+        "cached_input_tokens": 0,
+        "cost_usd": 0.0
+      }
+    },
+    {
+      "question_id": "seed-013",
+      "question_type": "unanswerable",
+      "difficulty": "medium",
+      "answerable": false,
+      "question": "What dividend did Cascade Semiconductor pay per share in fiscal 2024?",
+      "gold_answer": null,
+      "answer": "Cascade Semiconductor designs and sells analog and mixed-signal integrated circuits for industrial automation, automotive, and energy infrastructure customers. Business.",
+      "refused": false,
+      "retrieved_ids": [
+        "csc-2024-item1-001",
+        "csc-2024-item7-001",
+        "nwl-2024-item7-001",
+        "nwl-2024-item7-003",
+        "nwl-2024-item1a-001"
+      ],
+      "error": null,
+      "retrieval": {
+        "recall@1": null,
+        "precision@1": null,
+        "hit_rate@1": null,
+        "ndcg@1": null,
+        "answer_recall@1": null,
+        "recall@5": null,
+        "precision@5": null,
+        "hit_rate@5": null,
+        "ndcg@5": null,
+        "answer_recall@5": null,
+        "recall@10": null,
+        "precision@10": null,
+        "hit_rate@10": null,
+        "ndcg@10": null,
+        "answer_recall@10": null,
+        "recall@20": null,
+        "precision@20": null,
+        "hit_rate@20": null,
+        "ndcg@20": null,
+        "answer_recall@20": null,
+        "mrr": null,
+        "primary_ndcg": null,
+        "primary_recall": null
+      },
+      "refusal": {
+        "correct_refusal": false,
+        "false_refusal": null,
+        "answered_unanswerable": true
+      },
+      "citations": {
+        "total_citations": 1,
+        "resolvable": 1,
+        "fabricated": [],
+        "fabrication_rate": 0.0,
+        "uncited_answer": false
+      },
+      "answer_correctness": null,
+      "context_sufficiency": null,
+      "groundedness": null,
+      "judge_errors": [],
+      "judgments": [],
+      "timings": {
+        "retrieval": 0.037002999988544616,
+        "generation": 0.02506400005586329,
+        "total": 0.062067000044407905
+      },
+      "usage": {
+        "input_tokens": 30,
+        "output_tokens": 16,
+        "cached_input_tokens": 0,
+        "cost_usd": 0.0
+      }
+    },
+    {
+      "question_id": "seed-014",
+      "question_type": "unanswerable",
+      "difficulty": "easy",
+      "answerable": false,
+      "question": "What was Meridian Freight Holdings' operating margin in fiscal 2024?",
+      "gold_answer": null,
+      "answer": "Total net revenue for fiscal 2024 was $4,218 million, an increase of 11.0% compared with $3,800 million in fiscal 2023. The increase was driven primarily by higher freight volumes in the Ground segment and by contractual rate escalators that took effect in the second quarter.",
+      "refused": false,
+      "retrieved_ids": [
+        "nwl-2024-item7-001",
+        "csc-2024-item7-002",
+        "csc-2024-item7-001",
+        "nwl-2024-item7-002",
+        "nwl-2024-item7-003"
+      ],
+      "error": null,
+      "retrieval": {
+        "recall@1": null,
+        "precision@1": null,
+        "hit_rate@1": null,
+        "ndcg@1": null,
+        "answer_recall@1": null,
+        "recall@5": null,
+        "precision@5": null,
+        "hit_rate@5": null,
+        "ndcg@5": null,
+        "answer_recall@5": null,
+        "recall@10": null,
+        "precision@10": null,
+        "hit_rate@10": null,
+        "ndcg@10": null,
+        "answer_recall@10": null,
+        "recall@20": null,
+        "precision@20": null,
+        "hit_rate@20": null,
+        "ndcg@20": null,
+        "answer_recall@20": null,
+        "mrr": null,
+        "primary_ndcg": null,
+        "primary_recall": null
+      },
+      "refusal": {
+        "correct_refusal": false,
+        "false_refusal": null,
+        "answered_unanswerable": true
+      },
+      "citations": {
+        "total_citations": 1,
+        "resolvable": 1,
+        "fabricated": [],
+        "fabrication_rate": 0.0,
+        "uncited_answer": false
+      },
+      "answer_correctness": null,
+      "context_sufficiency": null,
+      "groundedness": null,
+      "judge_errors": [],
+      "judgments": [],
+      "timings": {
+        "retrieval": 0.0626909998118208,
+        "generation": 0.032489999966855976,
+        "total": 0.09518099977867678
+      },
+      "usage": {
+        "input_tokens": 33,
+        "output_tokens": 31,
+        "cached_input_tokens": 0,
+        "cost_usd": 0.0
+      }
+    },
+    {
+      "question_id": "seed-015",
+      "question_type": "ambiguous",
+      "difficulty": "hard",
+      "answerable": false,
+      "question": "How did revenue change last year?",
+      "gold_answer": null,
+      "answer": "Total net revenue for fiscal 2023 was $3,800 million, an increase of 3.2% compared with $3,682 million in fiscal 2022. Growth was constrained by softer industrial demand in the first half of the year.",
+      "refused": false,
+      "retrieved_ids": [
+        "nwl-2023-item7-001",
+        "nwl-2024-item7-002",
+        "nwl-2024-item7-003",
+        "nwl-2024-item1a-001",
+        "csc-2024-item7-001"
+      ],
+      "error": null,
+      "retrieval": {
+        "recall@1": null,
+        "precision@1": null,
+        "hit_rate@1": null,
+        "ndcg@1": null,
+        "answer_recall@1": null,
+        "recall@5": null,
+        "precision@5": null,
+        "hit_rate@5": null,
+        "ndcg@5": null,
+        "answer_recall@5": null,
+        "recall@10": null,
+        "precision@10": null,
+        "hit_rate@10": null,
+        "ndcg@10": null,
+        "answer_recall@10": null,
+        "recall@20": null,
+        "precision@20": null,
+        "hit_rate@20": null,
+        "ndcg@20": null,
+        "answer_recall@20": null,
+        "mrr": null,
+        "primary_ndcg": null,
+        "primary_recall": null
+      },
+      "refusal": {
+        "correct_refusal": false,
+        "false_refusal": null,
+        "answered_unanswerable": true
+      },
+      "citations": {
+        "total_citations": 1,
+        "resolvable": 1,
+        "fabricated": [],
+        "fabrication_rate": 0.0,
+        "uncited_answer": false
+      },
+      "answer_correctness": null,
+      "context_sufficiency": null,
+      "groundedness": null,
+      "judge_errors": [],
+      "judgments": [],
+      "timings": {
+        "retrieval": 0.02263700002913538,
+        "generation": 0.02330799998162547,
+        "total": 0.04594500001076085
+      },
+      "usage": {
+        "input_tokens": 26,
+        "output_tokens": 24,
+        "cached_input_tokens": 0,
+        "cost_usd": 0.0
+      }
+    },
+    {
+      "question_id": "seed-016",
+      "question_type": "comparative_temporal",
+      "difficulty": "hard",
+      "answerable": true,
+      "question": "And what about the year before that?",
+      "gold_answer": "Northwind's fiscal 2023 net revenue was $3,800 million, up 3.2% from $3,682 million in fiscal 2022.",
+      "answer": "",
+      "refused": true,
+      "retrieved_ids": [
+        "nwl-2023-item7-001"
+      ],
+      "error": null,
+      "retrieval": {
+        "recall@1": 1.0,
+        "precision@1": 1.0,
+        "hit_rate@1": 1.0,
+        "ndcg@1": 1.0,
+        "answer_recall@1": 1.0,
+        "recall@5": 1.0,
+        "precision@5": 1.0,
+        "hit_rate@5": 1.0,
+        "ndcg@5": 1.0,
+        "answer_recall@5": 1.0,
+        "recall@10": 1.0,
+        "precision@10": 1.0,
+        "hit_rate@10": 1.0,
+        "ndcg@10": 1.0,
+        "answer_recall@10": 1.0,
+        "recall@20": 1.0,
+        "precision@20": 1.0,
+        "hit_rate@20": 1.0,
+        "ndcg@20": 1.0,
+        "answer_recall@20": 1.0,
+        "mrr": 1.0,
+        "primary_ndcg": 1.0,
+        "primary_recall": 1.0
+      },
+      "refusal": {
+        "correct_refusal": null,
+        "false_refusal": true,
+        "answered_unanswerable": null
+      },
+      "citations": {
+        "total_citations": 0,
+        "resolvable": 0,
+        "fabricated": [],
+        "fabrication_rate": null,
+        "uncited_answer": false
+      },
+      "answer_correctness": null,
+      "context_sufficiency": null,
+      "groundedness": null,
+      "judge_errors": [],
+      "judgments": [],
+      "timings": {
+        "retrieval": 0.016317000017807004,
+        "generation": 0.0009000000318337698,
+        "total": 0.017217000049640774
+      },
+      "usage": {
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cached_input_tokens": 0,
+        "cost_usd": 0.0
+      }
+    }
+  ],
+  "cache": {
+    "hits": 0,
+    "misses": 0,
+    "writes": 0,
+    "hit_rate": null
+  },
+  "warnings": [
+    "no judge configured: correctness, context sufficiency and groundedness are unscored (deterministic metrics are unaffected)"
+  ]
+}

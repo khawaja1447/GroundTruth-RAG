@@ -1,0 +1,105 @@
+name: eval
+
+# The regression gate. Two jobs, deliberately split:
+#
+#   `checks`  runs on every push with no secrets. The whole deterministic half
+#             of the harness -- retrieval metrics, refusal scoring, citation
+#             validation, the statistics -- needs no API key, so quality is a
+#             testable property on every PR including forks.
+#
+#   `judged`  runs the judged metrics, which need a key. Skipped on forks
+#             rather than failed, because a fork cannot access the secret and
+#             a red X there is noise, not signal.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: eval-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    name: tests + deterministic gate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install
+        run: python -m pip install -e '.[dev]'
+
+      - name: Lint
+        run: |
+          python -m ruff check src evals tests
+          python -m ruff format --check src evals tests
+
+      - name: Test
+        run: python -m pytest
+
+      - name: Validate eval set
+        # --strict fails if any question is unverified, so a machine-written
+        # question cannot reach main without a human having checked it.
+        run: python -m evals.cli validate --corpus --strict
+
+      - name: Run deterministic eval
+        run: |
+          python -m evals.cli run \
+            --label "ci-${{ github.sha }}" \
+            --no-judge --quiet --results-dir evals/results
+
+      - name: Regression gate
+        run: |
+          LATEST=$(ls -t evals/results/*.json | head -1)
+          python -m evals.cli gate "$LATEST"
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: eval-results-${{ github.sha }}
+          path: evals/results/*.json
+          retention-days: 30
+
+  judged:
+    name: judged gate
+    runs-on: ubuntu-latest
+    # Forks have no access to the secret. Skip rather than fail.
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install with judge
+        run: python -m pip install -e '.[judge,dev]'
+
+      - name: Restore judge cache
+        # The cache is what makes this job nearly free: an unchanged answer
+        # re-uses its stored judgment instead of paying for a model call.
+        uses: actions/cache@v4
+        with:
+          path: evals/.cache
+          key: judge-cache-${{ github.sha }}
+          restore-keys: judge-cache-
+
+      - name: Run judged smoke subset
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          python -m evals.cli run \
+            --label "ci-judged-${{ github.sha }}" \
+            --limit 60 --quiet --results-dir evals/results
+
+      - name: Regression gate
+        run: |
+          LATEST=$(ls -t evals/results/*.json | head -1)
+          python -m evals.cli gate "$LATEST"

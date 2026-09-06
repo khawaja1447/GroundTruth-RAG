@@ -1,0 +1,46 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "groundtruth-rag"
+version = "0.2.0"
+description = "A retrieval system over financial filings where every design decision is justified by a measured delta."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+
+# The core harness is deliberately dependency-free. Retrieval metrics, refusal
+# scoring, citation validation, bootstrap confidence intervals and Cohen's
+# kappa are all stdlib, so `make test` and the CI regression gate run with
+# nothing installed and no API key.
+dependencies = []
+
+[project.optional-dependencies]
+# Only the LLM judge needs a model.
+judge = ["anthropic>=1.0"]
+dev = ["pytest>=8.0", "ruff>=0.6"]
+
+[project.scripts]
+gtrag-eval = "evals.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src", "."]
+include = ["gtrag*", "evals*"]
+
+[tool.setuptools.package-data]
+evals = ["judges/rubrics/*.md", "datasets/*.jsonl"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src", "."]
+addopts = "-q --strict-markers"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["src", "evals", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+ignore = ["E501"]
