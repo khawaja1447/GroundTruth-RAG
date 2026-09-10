@@ -133,6 +133,7 @@ class RecursiveChunker:
     chunk_tokens: int = 512
     overlap_tokens: int = 50
     separators: tuple[str, ...] = ("\n\n", "\n", ". ", " ")
+    exclude_front_matter: bool = True
     name: str = "recursive"
 
     def __post_init__(self) -> None:
@@ -146,6 +147,7 @@ class RecursiveChunker:
             "chunk_tokens": self.chunk_tokens,
             "overlap_tokens": self.overlap_tokens,
             "separators": list(self.separators),
+            "exclude_front_matter": self.exclude_front_matter,
         }
 
     def _split(self, text: str, offset: int, depth: int = 0) -> list[tuple[int, int]]:
@@ -164,7 +166,8 @@ class RecursiveChunker:
         return pieces
 
     def chunk(self, document: Document) -> list[SpannedChunk]:
-        pieces = self._split(document.text, 0)
+        start_at = document.content_start(self.exclude_front_matter)
+        pieces = self._split(document.text[start_at:], start_at)
         if not pieces:
             return []
 
@@ -230,6 +233,7 @@ class SentenceWindowChunker:
     """
 
     window: int = 2
+    exclude_front_matter: bool = True
     name: str = "sentence_window"
 
     def __post_init__(self) -> None:
@@ -238,10 +242,15 @@ class SentenceWindowChunker:
 
     @property
     def config(self) -> dict[str, Any]:
-        return {"chunker": self.name, "window": self.window}
+        return {
+            "chunker": self.name,
+            "window": self.window,
+            "exclude_front_matter": self.exclude_front_matter,
+        }
 
     def chunk(self, document: Document) -> list[SpannedChunk]:
-        sentences = split_sentences(document.text)
+        start_at = document.content_start(self.exclude_front_matter)
+        sentences = split_sentences(document.text[start_at:], offset=start_at)
         if not sentences:
             return []
 
@@ -296,6 +305,7 @@ class StructureAwareChunker:
 
     chunk_tokens: int = 512
     overlap_tokens: int = 50
+    exclude_front_matter: bool = True
     name: str = "structure_aware"
 
     def __post_init__(self) -> None:
@@ -308,6 +318,7 @@ class StructureAwareChunker:
             "chunker": self.name,
             "chunk_tokens": self.chunk_tokens,
             "overlap_tokens": self.overlap_tokens,
+            "exclude_front_matter": self.exclude_front_matter,
         }
 
     def _regions(self, document: Document) -> list[tuple[int, int]]:
@@ -316,7 +327,10 @@ class StructureAwareChunker:
             return [(0, len(document.text))]
         regions = [(s.span.start, s.span.end) for s in document.sections]
         first = regions[0][0]
-        if first > 0:
+        if first > 0 and not self.exclude_front_matter:
+            # The cover page and table of contents. Kept only when the
+            # caller explicitly wants them, since the TOC names every
+            # section heading and so matches almost any question.
             regions.insert(0, (0, first))
         return regions
 
@@ -512,6 +526,7 @@ class SemanticChunker:
     embedder: Embedder = field(default=None)  # type: ignore[assignment]
     percentile: float = 25.0
     max_tokens: int = 1024
+    exclude_front_matter: bool = True
     name: str = "semantic"
 
     def __post_init__(self) -> None:
@@ -530,10 +545,12 @@ class SemanticChunker:
             "max_tokens": self.max_tokens,
             "split_embedder": self.embedder.config.get("embedder", "?"),
             "split_embedder_semantic": self.embedder.config.get("semantic", False),
+            "exclude_front_matter": self.exclude_front_matter,
         }
 
     def chunk(self, document: Document) -> list[SpannedChunk]:
-        sentences = split_sentences(document.text)
+        start_at = document.content_start(self.exclude_front_matter)
+        sentences = split_sentences(document.text[start_at:], offset=start_at)
         if len(sentences) < 2:
             return (
                 [_make(document, self.name, str(self.percentile), 0, len(document.text), 0)]

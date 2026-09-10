@@ -9,10 +9,13 @@ CHUNK_TOKENS ?= 512
 EMBEDDER     ?= hashing
 SIGNAL              ?= margin
 MAX_FALSE_REFUSAL   ?= 0.05
+PORT                ?= 8000
+REQUESTS            ?= 200
 Q            ?= What was total net revenue in the most recent fiscal year?
 RUN     ?= $(shell ls -t evals/results/*.json 2>/dev/null | head -1)
 
 .PHONY: help install install-judge install-embed test lint ingest index query \
+        serve loadtest docker-build docker-up \
         sweep sweep-chunking sweep-generation refusal-curve validate stats eval eval-fast baseline gate compare calibrate-export \
         calibrate-report ablation clean
 
@@ -53,6 +56,18 @@ sweep-chunking:  ## Run the chunking sweep alone (dimension 1)
 
 sweep-generation:  ## Run the Phase 4 generation ladder
 	$(PY) scripts/run_sweep.py --sweep generation $(if $(DOCS),--docs $(DOCS),)
+
+serve:  ## Run the API locally (http://localhost:8000/docs)
+	$(PY) -m uvicorn gtrag.serve.app:create_app --factory --reload --port $(PORT)
+
+loadtest:  ## Characterise latency under concurrency (--ramp finds the knee)
+	$(PY) scripts/loadtest.py --requests $(REQUESTS) --ramp
+
+docker-build:  ## Build the runtime image
+	docker build -t groundtruth-rag:latest .
+
+docker-up:  ## Bring up the API plus Prometheus
+	docker compose up --build
 
 refusal-curve:  ## Measure the refusal tradeoff and choose an operating point
 	$(PY) scripts/refusal_curve.py --signal $(SIGNAL) --max-false-refusal $(MAX_FALSE_REFUSAL)

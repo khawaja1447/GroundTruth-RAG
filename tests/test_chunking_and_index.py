@@ -208,8 +208,11 @@ class TestLabelsSurviveRechunking:
 
     def test_coverage_report_flags_lost_evidence(self, document):
         chunks = FixedTokenChunker(chunk_tokens=128).chunk(document)
+        # Anchor inside the content region: offsets 100-200 are the cover
+        # page, which chunkers now exclude by design.
+        anchor = document.text.index("$4,218 million")
         spans = {
-            "q-present": [GoldSpan(Span(document.doc_id, 100, 200))],
+            "q-present": [GoldSpan(Span(document.doc_id, anchor, anchor + 14))],
             "q-absent": [GoldSpan(Span("some-other-doc", 0, 100))],
         }
         report = coverage_report(spans, chunks)

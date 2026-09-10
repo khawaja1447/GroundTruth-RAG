@@ -4,12 +4,14 @@ A retrieval system over corporate financial filings where **every
 architectural decision is justified by a measured delta** — and the evaluation
 harness that produces those numbers is the actual product.
 
-> **Status: Phases 1–4 complete.** Corpus pipeline, evaluation harness, the
-> retrieval ablation program, and grounded generation are built, tested and
-> running — 399 tests, no network, no API key. Phases 5–7 (serving,
-> hardening, ship) are next. Docs: [`corpus.md`](docs/corpus.md),
+> **Status: Phases 1–5 complete.** Corpus pipeline, evaluation harness, the
+> retrieval ablation program,
+> grounded generation and the serving layer are built, tested and running —
+> 456 tests, no network, no API key. Phases 6–7 (hardening, ship) are next.
+> Docs: [`corpus.md`](docs/corpus.md),
 > [`eval-methodology.md`](docs/eval-methodology.md),
-> [`ablation.md`](docs/ablation.md), [`generation.md`](docs/generation.md).
+> [`ablation.md`](docs/ablation.md), [`generation.md`](docs/generation.md),
+> [`serving.md`](docs/serving.md).
 
 Most RAG projects are forty lines: load PDF, split at 500 characters, embed,
 top-k, stuff into a prompt. They have no numbers, so there is nothing to
@@ -26,7 +28,7 @@ No API key, no network, no corpus needed:
 ```bash
 git clone <repo> && cd groundtruth-rag
 make install
-make test           # 399 tests, stdlib only
+make test           # 456 tests, stdlib only
 make validate       # dataset structure + corpus join
 make eval-fast      # full deterministic eval
 ```
@@ -348,6 +350,9 @@ broken judge gets through CI green.
 | `make sweep-chunking` | Chunking sweep alone |
 | `make sweep-generation` | Phase 4 generation ladder |
 | `make refusal-curve` | Measure the refusal tradeoff, pick an operating point |
+| `make serve` | Run the API locally |
+| `make loadtest` | Concurrency ramp; reports the knee |
+| `make docker-up` | API + Prometheus |
 | `make eval-fast` | Deterministic metrics only |
 | `make eval` | Full judged run |
 | `make baseline` | Promote latest run to the CI reference |

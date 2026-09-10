@@ -195,6 +195,32 @@ class Document:
             raise ValueError(f"span belongs to document {span.doc_id!r}, not {self.doc_id!r}")
         return self.text[span.start : span.end]
 
+    @property
+    def front_matter(self) -> Span | None:
+        """The region before the first real Item section, if any.
+
+        In a 10-K this is the cover page, the table of contents and the
+        cross-reference index. It contains no answers by construction --
+        every fact in a filing lives inside an Item -- but it is the single
+        most retrievable region in the document, because the table of
+        contents names every section heading and so matches lexically
+        against a question about any of them.
+
+        Exposed rather than removed at parse time, so excluding it stays a
+        measured configuration choice rather than a silent one.
+        """
+        if not self.sections:
+            return None
+        first = min(s.span.start for s in self.sections)
+        return Span(self.doc_id, 0, first) if first > 0 else None
+
+    def content_start(self, exclude_front_matter: bool = True) -> int:
+        """The first offset a chunker should consider."""
+        if not exclude_front_matter:
+            return 0
+        front = self.front_matter
+        return front.end if front else 0
+
     def section_at(self, offset: int) -> Section | None:
         """The section containing `offset`, if any.
 

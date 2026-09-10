@@ -89,6 +89,7 @@ class FixedTokenChunker:
 
     chunk_tokens: int = 512
     overlap_tokens: int = 50
+    exclude_front_matter: bool = True
     name: str = "fixed"
 
     def __post_init__(self) -> None:
@@ -110,10 +111,12 @@ class FixedTokenChunker:
             "chunker": self.name,
             "chunk_tokens": self.chunk_tokens,
             "overlap_tokens": self.overlap_tokens,
+            "exclude_front_matter": self.exclude_front_matter,
         }
 
     def chunk(self, document: Document) -> list[SpannedChunk]:
-        tokens = list(TOKEN_RE.finditer(document.text))
+        start_at = document.content_start(self.exclude_front_matter)
+        tokens = [m for m in TOKEN_RE.finditer(document.text) if m.start() >= start_at]
         if not tokens:
             return []
 

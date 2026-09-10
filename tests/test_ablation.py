@@ -44,6 +44,13 @@ from gtrag.types import Chunk, RetrievedChunk
 FIXTURES = Path(__file__).parent / "fixtures"
 
 
+def document_module_fixture():
+    return parse_filing(
+        (FIXTURES / "filing_sample.html").read_text(encoding="utf-8"),
+        metadata={"company": "Northwind Logistics, Inc.", "cik": 1234567, "fiscal_year": 2024},
+    )
+
+
 @pytest.fixture(scope="module")
 def document():
     return parse_filing(
@@ -152,8 +159,12 @@ class TestStructureAwareChunker:
         A financial table cut in half puts row labels in one chunk and
         figures in another, and neither is answerable.
         """
-        chunks = StructureAwareChunker(chunk_tokens=64).chunk(document)
-        for table in document.tables:
+        chunker = StructureAwareChunker(chunk_tokens=64)
+        chunks = chunker.chunk(document)
+        start = document.content_start(chunker.exclude_front_matter)
+        # The table of contents lives in the front matter, which is excluded
+        # by design; the invariant is about tables that carry data.
+        for table in [t for t in document.tables if t.span.start >= start]:
             covering = [
                 c
                 for c in chunks
@@ -175,11 +186,32 @@ class TestStructureAwareChunker:
 
     def test_oversized_table_becomes_its_own_chunk(self, document):
         # Budget far below the table's size: it must still emerge whole.
-        chunks = StructureAwareChunker(chunk_tokens=10, overlap_tokens=0).chunk(document)
-        for table in document.tables:
+        chunker = StructureAwareChunker(chunk_tokens=10, overlap_tokens=0)
+        chunks = chunker.chunk(document)
+        start = document.content_start(chunker.exclude_front_matter)
+        for table in [t for t in document.tables if t.span.start >= start]:
             assert any(
                 c.span.start <= table.span.start and c.span.end >= table.span.end for c in chunks
             )
+
+    def test_front_matter_is_excluded(self):
+        """The cover page and table of contents must not be retrievable.
+
+        The TOC names every section heading, so it matches lexically against
+        a question about any of them -- a universal false positive that
+        retrieves for everything and answers nothing.
+        """
+        chunks = StructureAwareChunker().chunk(document_module_fixture())
+        doc = document_module_fixture()
+        front = doc.front_matter
+        assert front is not None
+        assert all(c.span.start >= front.end for c in chunks)
+        assert not any("TABLE OF CONTENTS" in c.chunk.text.upper() for c in chunks)
+
+    def test_front_matter_can_be_kept_explicitly(self):
+        doc = document_module_fixture()
+        chunks = StructureAwareChunker(exclude_front_matter=False).chunk(doc)
+        assert any(c.span.start < (doc.front_matter.end) for c in chunks)
 
     def test_rejects_bad_overlap(self):
         with pytest.raises(ValueError, match="less than chunk_tokens"):

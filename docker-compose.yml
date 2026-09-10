@@ -1,0 +1,62 @@
+# `docker compose up` brings up the API and a Prometheus scraping it.
+#
+# The corpus is a bind mount rather than an image layer: it is large,
+# regenerable with `make ingest`, and changes on a different cadence from the
+# code. A container that bakes in its corpus has to be rebuilt to re-ingest.
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: groundtruth-rag:latest
+    ports:
+      - "8000:8000"
+    environment:
+      GTRAG_DOCS: /data/documents
+      GTRAG_CHUNKER: structure_aware
+      GTRAG_BM25: "1"
+      GTRAG_REWRITER: heuristic
+      GTRAG_VERIFIER: lexical
+      GTRAG_TOP_K: "5"
+      GTRAG_CACHE: "1"
+      GTRAG_CACHE_THRESHOLD: "0.95"
+      GTRAG_CACHE_TTL: "3600"
+      # Only needed for real generation and the judge. The service starts and
+      # answers extractively without it.
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+    volumes:
+      # Read-only: the service must never be able to mutate its own corpus.
+      - ./corpus/documents:/data/documents:ro
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - |
+          import urllib.request, sys
+          sys.exit(0 if urllib.request.urlopen("http://localhost:8000/readyz", timeout=2).status == 200 else 1)
+      interval: 15s
+      timeout: 3s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          # The pipeline is CPU-bound Python; one core per replica, and scale
+          # with replicas rather than threads (the GIL makes extra threads
+          # contend rather than help).
+          cpus: "1.0"
+          memory: 1G
+    restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./ops/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
