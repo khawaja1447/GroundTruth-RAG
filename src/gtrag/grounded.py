@@ -25,6 +25,8 @@ from .generate.refusal import RefusalPolicy, confidence_of
 from .generate.verify import VerificationResult, Verifier, annotate_unsupported
 from .retrieve.retrievers import Retriever
 from .retrieve.rewrite import NullRewriter, QueryRewriter
+from .security.access import AccessPolicy, Principal
+from .security.injection import Sanitizer
 from .types import Citation, SystemResponse
 
 __all__ = ["GroundedRagSystem", "GenerationTrace"]
@@ -40,6 +42,7 @@ class GenerationTrace:
     confidence: dict[str, float | int] = field(default_factory=dict)
     refused_by_policy: bool = False
     verification: dict[str, Any] = field(default_factory=dict)
+    security: dict[str, Any] = field(default_factory=dict)
 
     @property
     def was_rewritten(self) -> bool:
@@ -54,6 +57,7 @@ class GenerationTrace:
             "confidence": self.confidence,
             "refused_by_policy": self.refused_by_policy,
             "verification": self.verification,
+            "security": self.security,
         }
 
 
@@ -68,6 +72,8 @@ class GroundedRagSystem:
     rewriter: QueryRewriter = field(default_factory=NullRewriter)
     refusal: RefusalPolicy | None = None
     verifier: Verifier | None = None
+    access: AccessPolicy | None = None
+    sanitizer: Sanitizer | None = None
     annotate: bool = True
     top_k: int = 5
     name: str = "grounded"
@@ -87,6 +93,8 @@ class GroundedRagSystem:
         }
         config.update(self.refusal.config if self.refusal else {"refusal": "generator"})
         config.update(self.verifier.config if self.verifier else {"verifier": "none"})
+        config.update(self.access.config if self.access else {"access_policy": "none"})
+        config.update(self.sanitizer.config if self.sanitizer else {"sanitizer": "none"})
         return config
 
     @property
@@ -96,7 +104,11 @@ class GroundedRagSystem:
     # -- the pipeline -----------------------------------------------------
 
     def answer(
-        self, question: str, *, history: list[tuple[str, str]] | None = None
+        self,
+        question: str,
+        *,
+        history: list[tuple[str, str]] | None = None,
+        principal: Principal | None = None,
     ) -> SystemResponse:
         timings: dict[str, float] = {}
 
@@ -104,9 +116,25 @@ class GroundedRagSystem:
         query = self.rewriter.rewrite(question, history or ())
         timings["rewrite"] = (time.perf_counter() - t0) * 1000.0
 
+        # Access control is a retrieval PRE-filter, never a post-filter.
+        # Anything that reaches the scorer has already been read, so a
+        # post-filter narrows what is returned while the chunk still lands in
+        # the cache, the logs and the reranker.
+        where = None
+        if self.access is not None:
+            where = self.access.predicate(principal or Principal())
+
         t0 = time.perf_counter()
-        retrieved = self.retriever.retrieve(query, top_k=self.top_k)
+        retrieved = self.retriever.retrieve(query, top_k=self.top_k, where=where)
         timings["retrieval"] = (time.perf_counter() - t0) * 1000.0
+
+        injection_findings: list[Any] = []
+        if self.sanitizer is not None:
+            t0 = time.perf_counter()
+            cleaned, findings = self.sanitizer.sanitize_passages(retrieved)
+            retrieved = cleaned
+            injection_findings = [f.to_dict() for f in findings]
+            timings["sanitize"] = (time.perf_counter() - t0) * 1000.0
 
         t0 = time.perf_counter()
         assembled: AssembledContext = self.assembler.assemble(retrieved)
@@ -118,6 +146,10 @@ class GroundedRagSystem:
             rewritten_query=query,
             context=assembled.to_dict(),
             confidence=confidence.to_dict(),
+            security={
+                "principal": (principal or Principal()).to_dict(),
+                "injection_findings": injection_findings,
+            },
         )
 
         # Refuse before generating: a system that must produce an answer

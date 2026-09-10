@@ -4,14 +4,14 @@ A retrieval system over corporate financial filings where **every
 architectural decision is justified by a measured delta** — and the evaluation
 harness that produces those numbers is the actual product.
 
-> **Status: Phases 1–5 complete.** Corpus pipeline, evaluation harness, the
+> **Status: Phases 1–6 complete.** Corpus pipeline, evaluation harness, the
 > retrieval ablation program,
-> grounded generation and the serving layer are built, tested and running —
-> 456 tests, no network, no API key. Phases 6–7 (hardening, ship) are next.
+> grounded generation, serving and hardening are built, tested and running —
+> 495 tests, no network, no API key. Phase 7 (ship) is next.
 > Docs: [`corpus.md`](docs/corpus.md),
 > [`eval-methodology.md`](docs/eval-methodology.md),
 > [`ablation.md`](docs/ablation.md), [`generation.md`](docs/generation.md),
-> [`serving.md`](docs/serving.md).
+> [`serving.md`](docs/serving.md), [`security.md`](docs/security.md).
 
 Most RAG projects are forty lines: load PDF, split at 500 characters, embed,
 top-k, stuff into a prompt. They have no numbers, so there is nothing to
@@ -28,7 +28,7 @@ No API key, no network, no corpus needed:
 ```bash
 git clone <repo> && cd groundtruth-rag
 make install
-make test           # 456 tests, stdlib only
+make test           # 495 tests, stdlib only
 make validate       # dataset structure + corpus join
 make eval-fast      # full deterministic eval
 ```
@@ -283,6 +283,54 @@ degenerate points are now rejected by default.
 
 ---
 
+## Hardening: the two questions enterprise buyers ask first
+
+**Permission-aware retrieval.** Restricted content reaches no unauthorised
+principal — asserted in passages, in the answer, *and in the cache*:
+
+```
+principal             may see  in passages  in answer
+finance analyst           yes          yes        yes   PASS
+intern (no role)           no           no         no   PASS
+anonymous                  no           no         no   PASS
+```
+
+Filtering is a retrieval **pre-filter, never a post-filter**. Post-filtering
+is wrong twice: it returns fewer than k (the chunks the user *may* read never
+got to compete for the slots), and it is not a security boundary at all —
+anything reaching the scorer has already been read, so it still lands in the
+cache, the logs and the reranker. A test reaches into the cache and asserts
+the restricted figure is not there.
+
+Untagged documents are **denied by default**, and a missing principal fails
+closed. The permissive default leaks silently the first time a document is
+ingested before the tagging pipeline exists.
+
+**Indirect prompt injection.** Seven payloads, three separable measurements —
+because collapsing them produces a misleading number:
+
+```
+detection rate         86%   (the miss is asserted by a test, not hidden)
+behavioural success     0%   (NOT a security claim -- see below)
+structural             6 invisible characters stripped
+```
+
+The 0% is **immunity by construction, not by defence**: the extractive
+generator cannot follow instructions at all. Reporting it as a win would be a
+false reassurance, and the number is only meaningful against a real model.
+
+An earlier version of this measurement counted "the canary appears in the
+retrieved passages" and reported 100% before and after — trivially true, since
+the payload *is* the poisoned chunk. Presence in the context and change in
+behaviour are different questions.
+
+The sanitizer deliberately **does not delete** text that matches a pattern: an
+attacker who learns the pattern could append it to a paragraph they want
+suppressed and have the defence remove it for them. Only what is
+unconditionally safe — invisible characters, forged delimiters — is stripped.
+
+---
+
 ## Judge calibration
 
 The differentiating piece. An uncalibrated LLM judge produces numbers that look
@@ -353,6 +401,7 @@ broken judge gets through CI green.
 | `make serve` | Run the API locally |
 | `make loadtest` | Concurrency ramp; reports the knee |
 | `make docker-up` | API + Prometheus |
+| `make security` | Injection + access-control report (fails on leak) |
 | `make eval-fast` | Deterministic metrics only |
 | `make eval` | Full judged run |
 | `make baseline` | Promote latest run to the CI reference |

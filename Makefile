@@ -15,7 +15,7 @@ Q            ?= What was total net revenue in the most recent fiscal year?
 RUN     ?= $(shell ls -t evals/results/*.json 2>/dev/null | head -1)
 
 .PHONY: help install install-judge install-embed test lint ingest index query \
-        serve loadtest docker-build docker-up \
+        serve loadtest docker-build docker-up security \
         sweep sweep-chunking sweep-generation refusal-curve validate stats eval eval-fast baseline gate compare calibrate-export \
         calibrate-report ablation clean
 
@@ -68,6 +68,9 @@ docker-build:  ## Build the runtime image
 
 docker-up:  ## Bring up the API plus Prometheus
 	docker compose up --build
+
+security:  ## Injection resistance + access-control leak test (fails on leak)
+	$(PY) scripts/security_report.py
 
 refusal-curve:  ## Measure the refusal tradeoff and choose an operating point
 	$(PY) scripts/refusal_curve.py --signal $(SIGNAL) --max-false-refusal $(MAX_FALSE_REFUSAL)
