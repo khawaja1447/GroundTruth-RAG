@@ -207,6 +207,20 @@ def main() -> int:
                 f"{baseline:.2f}ms baseline"
             )
 
+        # A p95 threshold crossing on one run is not a capacity limit. On the
+        # in-process pipeline these timings are sub-millisecond and the
+        # reported knee has been observed to land at 8, 16 and 32 across
+        # consecutive runs of the same commit -- i.e. it was noise, and
+        # docs/serving.md 1 records a page that once published one of those
+        # as a result. Say so here rather than letting the line above be
+        # quoted on its own.
+        p50s = [r.get("p50_ms", 0.0) for r in rows]
+        if p50s and max(p50s) < 2.0 * (min(p50s) or 1.0):
+            print(
+                "p50 is flat across the ramp, so nothing is queueing: treat the knee "
+                "as a single sample, not a capacity limit. Re-run before quoting it."
+            )
+
     if args.out:
         Path(args.out).parent.mkdir(parents=True, exist_ok=True)
         Path(args.out).write_text(json.dumps(rows, indent=2), encoding="utf-8")

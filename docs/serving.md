@@ -8,27 +8,56 @@ Making "production" in the README load-bearing.
 
 ## 1. Measured behaviour
 
-`make loadtest` drives the pipeline in-process across a concurrency ramp:
+`make loadtest` drives the pipeline in-process across a concurrency ramp. One
+representative run:
 
 ```
  conc   reqs    p50 ms    p95 ms    p99 ms       rps  errors   cache
-    1    200      0.28      0.37      1.44    2806.3       0    96%
-    2    200      0.29      0.51      1.38    2741.6       0    96%
-    4    200      0.29      0.53      1.56    2668.9       0    96%
-    8    200      0.30      0.58      2.21    2431.6       0    96%
-   16    200      0.30      0.71      1.58    2337.7       0    96%
-   32    200      0.30      0.87      1.69    2315.4       0    96%
+    1    200      0.29      0.48      1.34    2608.4       0    96%
+    2    200      0.28      0.41      1.55    2753.3       0    96%
+    4    200      0.28      0.41      1.58    2724.5       0    96%
+    8    200      0.29      1.24      4.30    2594.9       0    96%
+   16    200      0.29      1.21      4.45    2521.0       0    96%
+   32    200      0.30      1.35      4.74    2411.6       0    96%
 
-knee: p95 exceeds 2x the single-threaded baseline (0.37ms) at concurrency 32
+knee: p95 exceeds 2x the single-threaded baseline (0.48ms) at concurrency 8
 ```
 
-**Throughput falls as concurrency rises** — 2806 rps at one thread down to
-2315 at thirty-two. That is the GIL: the pipeline is pure-Python CPU work, so
-extra threads contend rather than help. The operational consequence is in the
-compose file: one CPU per replica, and scale with replicas rather than
+### These numbers do not reproduce, and that is the finding
+
+Every other figure in this repository is pinned by `scripts/reproduce.py` and
+fails the build when it moves. **These are deliberately not**, because they
+cannot be: they are wall-clock timings on shared hardware.
+
+Four consecutive runs on the same commit and the same machine:
+
+```
+run   p95@1    knee   rps@1    rps@32
+  1    0.37      32   2806.3   2315.4
+  2    0.48       8   2608.4   2411.6
+  3    0.39      32   2784.7   2511.9
+  4    0.50      16   2762.5   2195.3
+```
+
+The knee moved between 8, 16 and 32 across runs. **So there is no knee in this
+range** — the detector is reporting the first place noise crossed its
+threshold, and quoting any single value would be inventing a capacity limit
+that does not exist. An earlier version of this page did exactly that, stating
+"knee at concurrency 32" from one run.
+
+What survives repetition, and is therefore the actual result:
+
+- **p50 is flat at ~0.28 ms at every concurrency tested.** Queueing is not
+  happening; requests are not waiting on each other.
+- **Throughput at 32 threads is always below the peak**, which sits at one or
+  two threads — 2195–2512 rps against a 2608–2860 peak. Never above.
+
+Threads buy nothing here. The pipeline is pure-Python CPU work, so they
+contend on the GIL rather than overlapping. The operational consequence is in
+the compose file: one CPU per replica, and scale with replicas rather than
 `--workers`.
 
-These numbers are the *retrieval and assembly* path only. The extractive
+These numbers are also the *retrieval and assembly* path only. The extractive
 generator makes no model call, so a real deployment's p95 is dominated by the
 LLM and will be three orders of magnitude larger. Reporting sub-millisecond
 latency as though it were end-to-end service latency would be dishonest; what
@@ -225,6 +254,11 @@ validation, streaming order, and the 503 path.
 
 **Not measured:** behaviour under a real LLM's latency and failure modes, and
 the container itself — Docker is not available in this environment, so the
-Dockerfile and compose file are written but unbuilt. The load-test numbers
-are in-process; `--url` drives a live server and is the honest way to claim a
-p99.
+Dockerfile and compose file are written but unbuilt.
+
+**Not reproducible, deliberately:** the load-test timings in §1. They are the
+only figures in the repository outside `scripts/reproduce.py`'s contract,
+because wall-clock measurements on shared hardware cannot be pinned to four
+decimal places and pretending otherwise is worse than omitting them. What
+repeats is stated as repeating; what does not is shown varying. `--url`
+drives a live server and is the honest way to claim a p99.

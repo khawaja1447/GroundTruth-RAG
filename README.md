@@ -6,7 +6,7 @@ harness that produces those numbers is the actual product.
 
 > **Status: complete, Phases 1–7.** Corpus pipeline, evaluation harness, the
 > retrieval ablation program, grounded generation, serving and hardening are
-> built, tested and running — **503 tests, no network, no API key, $0.00**.
+> built, tested and running — **505 tests, no network, no API key, $0.00**.
 > Every figure below is re-derived from source by `make reproduce`, which
 > fails if one moves.
 > Docs: [`corpus.md`](docs/corpus.md),
@@ -29,7 +29,7 @@ No API key, no network, no corpus needed:
 ```bash
 git clone <repo> && cd groundtruth-rag
 make install
-make test           # 503 tests, stdlib only
+make test           # 505 tests, stdlib only
 make validate       # dataset structure + corpus join
 make eval-fast      # full deterministic eval
 make reproduce      # re-derive every figure in this README; fails if one moved
@@ -44,7 +44,9 @@ make index
 make query Q="What was Apple's total net revenue in fiscal 2024?"
 ```
 
-`make eval-fast` on the fixture corpus produces:
+`make eval-fast` on the fixture corpus produces (abridged — the full output
+also lists the three judged metrics as `unscored`, plus latency, cost, and the
+empty slices):
 
 ```
   ndcg@10                        0.8296  [0.6466, 0.9702]  (n=12, 4 n/a)
@@ -70,8 +72,10 @@ is the point of the exercise:
 - `answered_unanswerable = 1.00` — it answers **every** question it should have
   refused. That is the hallucination path, quantified.
 - `numeric_table` is the weakest slice at 0.54 nDCG — figures inside tables are
-  the hardest thing to retrieve on this corpus, which is what motivates
-  structure-aware chunking in Phase 3.
+  the hardest thing to retrieve on this corpus. That is what motivated
+  structure-aware chunking in Phase 3; it is *not* a claim that structure-aware
+  chunking fixed it. On this smoke corpus it scored below the fixed-size
+  baseline, inconclusively. See [`ablation.md`](docs/ablation.md).
 
 ---
 
@@ -136,7 +140,7 @@ scripts/
 ├── run_sweep.py             # P3  the ablation program
 ├── refusal_curve.py         # P4  the tradeoff curve and operating-point selection
 ├── security_report.py       # P6  leak test + injection report, non-zero on a leak
-├── loadtest.py              # P5  concurrency ramp, reports the knee
+├── loadtest.py              # P5  concurrency ramp (machine-dependent; see below)
 └── build_ablation_table.py  # P3  the table, generated rather than typed
 ```
 
@@ -279,7 +283,7 @@ on incomparable scales, and normalising them is a hidden hyperparameter.
 
 ```
 configuration                      answered_unans   false_refusal   fabricated
-p3 winner (no generation stages)          100.0%            0.0%         0.0%
+p4 base: structure-aware + bm25           100.0%            0.0%         0.0%
 + dedup                                   100.0%            0.0%         0.0%
 + lost-in-the-middle order                100.0%            0.0%         0.0%
 + query rewriting                         100.0%            0.0%         0.0%
@@ -338,10 +342,18 @@ blocked component's metrics were the only place it showed.
 
 **This was caught by tooling, not by insight.** `scripts/reproduce.py` holds
 every published figure in a `PUBLISHED` table, re-derives all eighteen from
-source in eleven seconds, and exits non-zero when one moves. It moved ten of
-them at once. Without it, this README would still carry the superseded
+source in eleven seconds, and exits non-zero when one moves. On the run that
+introduced it, ten of the eleven figures the table then held came back
+`MOVED` — which is how both this and the retrieval bug below surfaced in the
+same minute. Without it, this README would still carry the superseded
 conclusion, stated just as confidently. The full account is in
 [`generation.md` §2](docs/generation.md).
+
+The same run caught a plain bug: the system was reporting its *assembled
+context* as the retrieval result. `lost_in_the_middle_order` deliberately
+moves rank 2 to the end of the context, so every rank-sensitive metric —
+nDCG, MRR — had been measuring the presentation layout rather than the
+retriever.
 
 Still true, and still enforced: at a **5% ceiling** no signal produces an
 operating point and `make refusal-curve MAX_FALSE_REFUSAL=0.05` exits
@@ -358,22 +370,35 @@ criterion, so degenerate points are rejected by default.
 trace -> cache lookup -> [degradable pipeline] -> cache store -> metrics
 ```
 
-`make loadtest` runs a concurrency ramp and reports the knee. The result is
-worth stating because it is counter-intuitive:
+`make loadtest` runs a concurrency ramp. One representative run:
 
 ```
  conc   reqs    p50 ms    p95 ms       rps  errors   cache
-    1    200      0.28      0.37    2806.3       0    96%
-   32    200      0.30      0.87    2315.4       0    96%
+    1    200      0.29      0.48    2608.4       0    96%
+   32    200      0.30      1.35    2411.6       0    96%
 ```
 
-**Throughput falls as concurrency rises.** That is the GIL — the pipeline is
-pure-Python CPU work, so extra threads contend rather than help. The
-operational consequence is in the compose file: one CPU per replica, scale
-with replicas, not `--workers`. And these are *retrieval and assembly* only;
-a real deployment's p95 is dominated by the model and will be three orders of
-magnitude larger. Reporting sub-millisecond latency as end-to-end service
-latency would be dishonest.
+**These are the only numbers in this repository not under the reproduce
+contract, and they do not reproduce.** They are wall-clock timings on shared
+hardware. Across four consecutive runs the single-threaded p95 ranged 0.37–0.50
+ms and the reported knee landed at concurrency 8, 16 and 32 — so the knee is
+noise, not a measurement, and quoting one is how a load test becomes theatre.
+
+What is stable across every run, and is the actual finding:
+
+- **p50 is flat at ~0.28 ms at every concurrency**, and
+- **throughput at 32 threads is always below the peak** (which sits at 1–2
+  threads), never above it.
+
+Threads buy nothing here: the pipeline is pure-Python CPU work, so they
+contend on the GIL rather than overlapping. The operational consequence is in
+the compose file — one CPU per replica, scale with replicas, not `--workers`.
+
+And these cover *retrieval and assembly* only. The extractive generator makes
+no model call, so a real deployment's p95 is dominated by the LLM and will be
+three orders of magnitude larger. Reporting sub-millisecond latency as
+end-to-end service latency would be dishonest; what this measures is that the
+parts *we* wrote are not the bottleneck.
 
 Three decisions the rest of the layer turns on:
 
@@ -521,8 +546,14 @@ make reproduce      # 18 figures, ~11s, no model call, $0.00
 
 ## Commands
 
+`make help` lists these from the Makefile itself.
+
 | Command | Does |
 |---|---|
+| `make install` | Install the package and dev dependencies |
+| `make install-judge` | Also install the Anthropic SDK (judged metrics, real generation) |
+| `make install-embed` | Also install sentence-transformers (real semantic embeddings) |
+| `make lint` | Ruff check + format check across `src`, `evals`, `tests`, `scripts` |
 | `make ingest` | Fetch + parse filings from EDGAR (needs `GTRAG_SEC_USER_AGENT`) |
 | `make index` | Chunk + embed the document store |
 | `make query Q="…"` | Ask the baseline a question |
@@ -534,7 +565,8 @@ make reproduce      # 18 figures, ~11s, no model call, $0.00
 | `make sweep-generation` | Phase 4 generation ladder |
 | `make refusal-curve` | Measure the refusal tradeoff, pick an operating point |
 | `make serve` | Run the API locally |
-| `make loadtest` | Concurrency ramp; reports the knee |
+| `make loadtest` | Concurrency ramp (timings are machine-dependent, not pinned) |
+| `make docker-build` | Build the runtime image |
 | `make docker-up` | API + Prometheus |
 | `make security` | Injection + access-control report (fails on leak) |
 | `make eval-fast` | Deterministic metrics only |
@@ -546,6 +578,7 @@ make reproduce      # 18 figures, ~11s, no model call, $0.00
 | `make calibrate-report` | Judge/human agreement |
 | `make ablation` | Regenerate the ablation table |
 | `make reproduce` | Re-derive every published figure; fails if one moved |
+| `make clean` | Remove caches and generated artifacts (keeps results and baselines) |
 
 ---
 
@@ -566,7 +599,7 @@ quietly leave out.
 | Prompt injection is handled | **No.** 0% behavioural success is immunity *by construction* — the extractive generator cannot follow instructions at all. That number is meaningless until a real model runs. What is real: 86% detection with the miss asserted by a test, and unconditional structural neutralisation |
 | The EDGAR client works | **Unverified.** `sec.gov` is blocked at this environment's gateway, so `HttpFetcher` has never made a live request. Logic is covered against recorded fixtures; expect to adjust `ITEM_PATTERNS` on first contact with real filers |
 | The container runs | **Unbuilt.** Docker is unavailable here. The Dockerfile and compose file are written, not exercised |
-| The load-test p99 is a service latency | **No.** In-process, retrieval and assembly only. `--url` drives a live server and is the honest way to claim one |
+| The load-test p99 is a service latency | **No.** In-process, retrieval and assembly only, and the *only* figures here outside the reproduce contract — they are wall-clock timings and they do not repeat. The reported knee moved between 8, 16 and 32 across four runs, so there isn't one. `--url` drives a live server and is the honest way to claim a p99 |
 
 Every one of these is stated the same way in the phase docs, next to the
 number it qualifies, rather than collected here to be forgotten.
@@ -576,9 +609,10 @@ number it qualifies, rather than collected here to be forgotten.
 ## A note on the fixture data
 
 `src/gtrag/fixtures/` contains a small synthetic corpus — **invented companies,
-invented figures.** It exists so the harness has something to run against
-before Phase 1 delivers real EDGAR ingestion, and so the tests have fixed,
-hand-checkable inputs. None of it is real financial data. It is shaped like the
+invented figures.** It was written so the harness had something to run against
+before EDGAR ingestion existed, and it stays because the tests need fixed,
+hand-checkable inputs that do not change when a filer reformats their HTML.
+None of it is real financial data. It is shaped like the
 real thing in the ways that matter for retrieval: two similar companies with
 overlapping vocabulary, two fiscal years of near-identical boilerplate, figures
 that live in tables, and a footnote that qualifies the number above it.

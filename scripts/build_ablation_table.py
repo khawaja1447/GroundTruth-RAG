@@ -69,7 +69,24 @@ def main() -> int:
         print(f"no result files in {result_dir}", file=sys.stderr)
         return 1
 
-    runs = [RunResult.load(f) for f in files]
+    # Not every JSON file in the results directory is a run: `make reproduce`
+    # writes its report here, and baselines and calibration exports land
+    # alongside too. Skip what does not parse rather than taking the whole
+    # table down -- and say what was skipped, so a genuinely corrupt run file
+    # is visible instead of silently missing from the table.
+    runs, skipped = [], []
+    for path in files:
+        try:
+            runs.append(RunResult.load(path))
+        except (TypeError, KeyError, ValueError):
+            skipped.append(path.name)
+
+    if not runs:
+        print(f"no run result files in {result_dir} ({len(files)} json file(s) skipped)")
+        return 1
+    if skipped:
+        print(f"skipped {len(skipped)} non-run file(s): {', '.join(skipped)}", file=sys.stderr)
+
     runs.sort(key=lambda r: r.provenance.get("created_at", ""))
 
     baseline_path = Path(args.baseline)

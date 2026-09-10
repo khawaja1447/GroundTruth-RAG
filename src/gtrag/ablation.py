@@ -302,8 +302,10 @@ def build_system(
 # --------------------------------------------------------------------------
 
 # Dimension 1, run first and alone: chunking is the only dimension whose
-# change invalidates the index, and its winner becomes the substrate every
-# later dimension is measured on.
+# change invalidates the index, so whichever strategy the later dimensions are
+# built on becomes the substrate they are all measured against. On this smoke
+# corpus the sweep does not name a winner -- see the ladder below for which
+# configuration was chosen and on what grounds.
 CHUNKING_SWEEP: tuple[AblationConfig, ...] = (
     AblationConfig(label="fixed 512/50 (baseline)", chunker="fixed"),
     AblationConfig(label="recursive", chunker="recursive"),
@@ -341,8 +343,19 @@ ABLATION_LADDER: tuple[AblationConfig, ...] = (
 )
 
 
-# Dimension 6: the Phase 4 stages, on top of the Phase 3 winner. Each rung
-# again adds exactly one component, so the delta is attributable.
+# Dimension 6: the Phase 4 stages, on top of a fixed Phase 3 configuration.
+# Each rung again adds exactly one component, so the delta is attributable.
+#
+# The base is structure-aware chunking plus BM25 hybrid. It is deliberately NOT
+# called "the Phase 3 winner": Phase 3 produced no winner, because every delta
+# in its ladder came back inconclusive -- and on this smoke corpus the plain
+# fixed-size baseline actually outscores structure-aware chunking. This is a
+# stated choice, not a verdict. Hybrid retrieval had the largest positive point
+# estimate of any rung; structure-aware chunking is the one whose invariants
+# (a table is never split, a chunk never crosses a section) are asserted by
+# tests rather than argued from a score; and every downstream calibration --
+# the refusal curve, the access-control and injection work -- is done against
+# this exact configuration, so the ladder has to share it.
 #
 # The refusal rung uses the operating point the curve identifies, so the
 # ladder shows what that tradeoff actually costs rather than asserting it.
@@ -350,7 +363,7 @@ _P4_BASE = {"chunker": "structure_aware", "bm25": True}
 
 GENERATION_LADDER: tuple[AblationConfig, ...] = (
     AblationConfig(
-        label="p3 winner (no generation stages)",
+        label="p4 base: structure-aware + bm25",
         deduplicate=False,
         reorder=False,
         **_P4_BASE,

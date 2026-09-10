@@ -63,7 +63,7 @@ sweep-generation:  ## Run the Phase 4 generation ladder
 serve:  ## Run the API locally (http://localhost:8000/docs)
 	$(PY) -m uvicorn gtrag.serve.app:create_app --factory --reload --port $(PORT)
 
-loadtest:  ## Characterise latency under concurrency (--ramp finds the knee)
+loadtest:  ## Concurrency ramp (wall-clock: machine-dependent, not pinned)
 	$(PY) scripts/loadtest.py --requests $(REQUESTS) --ramp
 
 docker-build:  ## Build the runtime image

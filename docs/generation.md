@@ -5,13 +5,24 @@ between that and an answer a reader can check.
 
     query -> rewrite -> retrieve -> assemble -> refuse? -> generate -> verify
 
+The ladder below sits on structure-aware chunking plus BM25 hybrid. That is a
+**stated choice, not a Phase 3 verdict** — Phase 3 named no winner, because
+every delta in its ladder came back inconclusive, and on the smoke corpus the
+plain fixed-size baseline actually outscores structure-aware chunking. Hybrid
+retrieval had the largest positive point estimate of any rung; structure-aware
+chunking is the strategy whose invariants are asserted by tests rather than
+argued from a score; and every calibration downstream of here — the refusal
+curve, the access-control and injection work — is done against this exact
+configuration. The reasoning is recorded next to `_P4_BASE` in
+`src/gtrag/ablation.py`, where it can be argued with.
+
 ---
 
 ## 1. The headline result
 
 ```
 configuration                      answered_unans   false_refusal   fabricated
-p3 winner (no generation stages)          100.0%            0.0%         0.0%
+p4 base: structure-aware + bm25           100.0%            0.0%         0.0%
 + dedup                                   100.0%            0.0%         0.0%
 + lost-in-the-middle order                100.0%            0.0%         0.0%
 + query rewriting                         100.0%            0.0%         0.0%

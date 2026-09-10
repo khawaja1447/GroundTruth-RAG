@@ -9,11 +9,16 @@ in `docs/generation.md` survived as long as it did.
 These tests close that gap without running the eval: they assert the contract
 is complete, that every claim it makes is present in the documents, and that
 the ladder indices `reproduce.py` reads by position still exist.
+
+The last class covers the reporting scripts the README points readers at,
+because a command that crashes is a broken claim too.
 """
 
 from __future__ import annotations
 
 import importlib.util
+import json
+import subprocess
 import sys
 from pathlib import Path
 
@@ -24,9 +29,9 @@ from gtrag.ablation import ABLATION_LADDER, CHUNKING_SWEEP, GENERATION_LADDER
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def _load_reproduce():
-    """Import the script by path -- `scripts/` is not a package."""
-    spec = importlib.util.spec_from_file_location("reproduce", ROOT / "scripts" / "reproduce.py")
+def _load_script(name: str):
+    """Import a script by path -- `scripts/` is not a package."""
+    spec = importlib.util.spec_from_file_location(name, ROOT / "scripts" / f"{name}.py")
     module = importlib.util.module_from_spec(spec)
     assert spec.loader is not None
     # `@dataclass` resolves annotations against `sys.modules[cls.__module__]`,
@@ -38,7 +43,7 @@ def _load_reproduce():
 
 @pytest.fixture(scope="module")
 def reproduce():
-    return _load_reproduce()
+    return _load_script("reproduce")
 
 
 class TestTheContractIsComplete:
@@ -92,3 +97,50 @@ class TestLadderIndicesAreStillValid:
     def test_generation_ladder_ends_on_the_refusal_rung(self):
         assert GENERATION_LADDER[-1].refusal_signal == "top_score"
         assert not GENERATION_LADDER[0].refusal_signal
+
+
+class TestTheAblationTableSurvivesAStrayFile:
+    """`make ablation` globs every `*.json` in the results directory.
+
+    It used to load them all as run results and crash on the first one that
+    was not -- which `make reproduce` triggered the moment it started writing
+    its report there. Baselines, calibration exports and editor backups land
+    in that directory too, so the glob has to tolerate them: a stray file must
+    not take down a command the README tells people to run.
+    """
+
+    def _run(self, results_dir: Path):
+        return subprocess.run(
+            [
+                sys.executable,
+                str(ROOT / "scripts" / "build_ablation_table.py"),
+                "--results",
+                str(results_dir),
+            ],
+            capture_output=True,
+            text=True,
+            cwd=ROOT,
+        )
+
+    def test_a_non_run_json_is_skipped_not_fatal(self, tmp_path):
+        real = next(
+            path
+            for path in (ROOT / "evals" / "results").glob("*.json")
+            if "run_id" in json.loads(path.read_text(encoding="utf-8"))
+        )
+        (tmp_path / "run.json").write_text(real.read_text(encoding="utf-8"), encoding="utf-8")
+        (tmp_path / "reproduce.json").write_text(json.dumps({"figures": []}), encoding="utf-8")
+
+        result = self._run(tmp_path)
+
+        assert result.returncode == 0, result.stderr
+        assert "reproduce.json" in result.stderr  # named, not silently dropped
+        assert "| Configuration |" in result.stdout
+
+    def test_a_directory_of_only_stray_files_fails_loudly(self, tmp_path):
+        (tmp_path / "reproduce.json").write_text(json.dumps({"figures": []}), encoding="utf-8")
+
+        result = self._run(tmp_path)
+
+        assert result.returncode == 1
+        assert "no run result files" in result.stdout
