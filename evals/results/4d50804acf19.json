@@ -30,11 +30,11 @@
       "resamples": 10000,
       "seed": 20260906
     },
-    "label": "phase1-baseline-stub"
+    "label": "baseline"
   },
   "provenance": {
-    "created_at": "2026-09-06T04:20:48+00:00",
-    "duration_s": 0.62,
+    "created_at": "2026-09-10T05:13:44+00:00",
+    "duration_s": 0.65,
     "python": "3.11.15",
     "platform": "Linux-6.18.44-fc-v24-x86_64-with-glibc2.39",
     "workers": 4,
@@ -64,7 +64,7 @@
     "answerable": 12,
     "unanswerable": 4,
     "multi_turn": 1,
-    "mean_gold_chunks_per_answerable": 1.42,
+    "mean_gold_evidence_per_answerable": 1.42,
     "path": "evals/datasets/qa_seed.jsonl"
   },
   "aggregates": {
@@ -294,9 +294,9 @@
     },
     "latency_ms": {
       "metric": "latency_ms",
-      "mean": 0.08328562505255377,
-      "ci_low": 0.05963326724582886,
-      "ci_high": 0.11512059850637968,
+      "mean": 0.09161118752842867,
+      "ci_low": 0.07486739378244067,
+      "ci_high": 0.10964569382494459,
       "n": 16,
       "n_undefined": 0
     },
@@ -537,9 +537,9 @@
       },
       "latency_ms": {
         "metric": "latency_ms",
-        "mean": 0.11963100007506,
-        "ci_low": 0.0534335001702857,
-        "ci_high": 0.2249270000334036,
+        "mean": 0.12295874995515987,
+        "ci_low": 0.08165499980350432,
+        "ci_high": 0.16426250010681542,
         "n": 4,
         "n_undefined": 0
       },
@@ -779,9 +779,9 @@
       },
       "latency_ms": {
         "metric": "latency_ms",
-        "mean": 0.08141533347346315,
-        "ci_low": 0.06089200019232521,
-        "ci_high": 0.112790000230234,
+        "mean": 0.09197500010789857,
+        "ci_low": 0.07105300005605386,
+        "ci_high": 0.10694800016608497,
         "n": 3,
         "n_undefined": 0
       },
@@ -1021,9 +1021,9 @@
       },
       "latency_ms": {
         "metric": "latency_ms",
-        "mean": 0.058964500112779206,
-        "ci_low": 0.05768400001215923,
-        "ci_high": 0.06024500021339918,
+        "mean": 0.09897449990603491,
+        "ci_low": 0.0698269998338219,
+        "ci_high": 0.1281219999782479,
         "n": 2,
         "n_undefined": 0
       },
@@ -1263,9 +1263,9 @@
       },
       "latency_ms": {
         "metric": "latency_ms",
-        "mean": 0.07792800003395921,
-        "ci_low": 0.017217000049640774,
-        "ci_high": 0.14950300010241335,
+        "mean": 0.06555900010122666,
+        "ci_low": 0.021580000066023786,
+        "ci_high": 0.09518199999547505,
         "n": 3,
         "n_undefined": 0
       },
@@ -1505,9 +1505,9 @@
       },
       "latency_ms": {
         "metric": "latency_ms",
-        "mean": 0.07071399992734466,
-        "ci_low": 0.05489399995894928,
-        "ci_high": 0.09518099977867678,
+        "mean": 0.07693066671284517,
+        "ci_low": 0.06539600008181878,
+        "ci_high": 0.08854500015331723,
         "n": 3,
         "n_undefined": 0
       },
@@ -1747,9 +1747,9 @@
       },
       "latency_ms": {
         "metric": "latency_ms",
-        "mean": 0.04594500001076085,
-        "ci_low": 0.04594500001076085,
-        "ci_high": 0.04594500001076085,
+        "mean": 0.07260100005623826,
+        "ci_low": 0.07260100005623826,
+        "ci_high": 0.07260100005623826,
         "n": 1,
         "n_undefined": 0
       },
@@ -1824,9 +1824,9 @@
       "judge_errors": [],
       "judgments": [],
       "timings": {
-        "retrieval": 0.14067799997974362,
-        "generation": 0.1382030000058876,
-        "total": 0.2788809999856312
+        "retrieval": 0.07358800007750688,
+        "generation": 0.10722600018198136,
+        "total": 0.18081400025948824
       },
       "usage": {
         "input_tokens": 28,
@@ -1895,9 +1895,9 @@
       "judge_errors": [],
       "judgments": [],
       "timings": {
-        "retrieval": 0.08053100009419722,
-        "generation": 0.032259000136036775,
-        "total": 0.112790000230234
+        "retrieval": 0.07500500009882671,
+        "generation": 0.031943000067258254,
+        "total": 0.10694800016608497
       },
       "usage": {
         "input_tokens": 29,
@@ -1966,9 +1966,9 @@
       "judge_errors": [],
       "judgments": [],
       "timings": {
-        "retrieval": 0.03226500007258437,
-        "generation": 0.028627000119740842,
-        "total": 0.06089200019232521
+        "retrieval": 0.03680400004668627,
+        "generation": 0.03424900000936759,
+        "total": 0.07105300005605386
       },
       "usage": {
         "input_tokens": 30,
@@ -2037,9 +2037,9 @@
       "judge_errors": [],
       "judgments": [],
       "timings": {
-        "retrieval": 0.03620100005718996,
-        "generation": 0.03436299994064029,
-        "total": 0.07056399999783025
+        "retrieval": 0.05848399996466469,
+        "generation": 0.039440000136892195,
+        "total": 0.09792400010155689
       },
       "usage": {
         "input_tokens": 26,
@@ -2108,9 +2108,9 @@
       "judge_errors": [],
       "judgments": [],
       "timings": {
-        "retrieval": 0.03464300016275956,
-        "generation": 0.025602000050639617,
-        "total": 0.06024500021339918
+        "retrieval": 0.03902999992533296,
+        "generation": 0.030796999908488942,
+        "total": 0.0698269998338219
       },
       "usage": {
         "input_tokens": 26,
@@ -2179,9 +2179,9 @@
       "judge_errors": [],
       "judgments": [],
       "timings": {
-        "retrieval": 0.031061000072440947,
-        "generation": 0.026622999939718284,
-        "total": 0.05768400001215923
+        "retrieval": 0.07292899999811198,
+        "generation": 0.05519299998013594,
+        "total": 0.1281219999782479
       },
       "usage": {
         "input_tokens": 26,
@@ -2250,9 +2250,9 @@
       "judge_errors": [],
       "judgments": [],
       "timings": {
-        "retrieval": 0.09644800002206466,
-        "generation": 0.05305500008034869,
-        "total": 0.14950300010241335
+        "retrieval": 0.05611300002783537,
+        "generation": 0.039068999967639684,
+        "total": 0.09518199999547505
       },
       "usage": {
         "input_tokens": 33,
@@ -2321,9 +2321,9 @@
       "judge_errors": [],
       "judgments": [],
       "timings": {
-        "retrieval": 0.03558399998837558,
-        "generation": 0.0314799999614479,
-        "total": 0.06706399994982348
+        "retrieval": 0.046813000153633766,
+        "generation": 0.033102000088547356,
+        "total": 0.07991500024218112
       },
       "usage": {
         "input_tokens": 26,
@@ -2392,9 +2392,9 @@
       "judge_errors": [],
       "judgments": [],
       "timings": {
-        "retrieval": 0.0320230001307209,
-        "generation": 0.031042000045999885,
-        "total": 0.06306500017672079
+        "retrieval": 0.05631699991681671,
+        "generation": 0.04484999999476713,
+        "total": 0.10116699991158384
       },
       "usage": {
         "input_tokens": 35,
@@ -2459,9 +2459,9 @@
       "judge_errors": [],
       "judgments": [],
       "timings": {
-        "retrieval": 0.019737000002351124,
-        "generation": 0.024065000161499484,
-        "total": 0.04380200016385061
+        "retrieval": 0.031832999866310274,
+        "generation": 0.03030999982911453,
+        "total": 0.062142999695424805
       },
       "usage": {
         "input_tokens": 30,
@@ -2530,9 +2530,9 @@
       "judge_errors": [],
       "judgments": [],
       "timings": {
-        "retrieval": 0.05770400002802489,
-        "generation": 0.03507199994601251,
-        "total": 0.0927759999740374
+        "retrieval": 0.11460500013527053,
+        "generation": 0.03310599981887208,
+        "total": 0.1477109999541426
       },
       "usage": {
         "input_tokens": 28,
@@ -2601,9 +2601,9 @@
       "judge_errors": [],
       "judgments": [],
       "timings": {
-        "retrieval": 0.029835000077582663,
-        "generation": 0.025058999881366617,
-        "total": 0.05489399995894928
+        "retrieval": 0.04138799999964249,
+        "generation": 0.03546299990375701,
+        "total": 0.0768509999033995
       },
       "usage": {
         "input_tokens": 28,
@@ -2672,9 +2672,9 @@
       "judge_errors": [],
       "judgments": [],
       "timings": {
-        "retrieval": 0.037002999988544616,
-        "generation": 0.02506400005586329,
-        "total": 0.062067000044407905
+        "retrieval": 0.03250300005674944,
+        "generation": 0.03289300002506934,
+        "total": 0.06539600008181878
       },
       "usage": {
         "input_tokens": 30,
@@ -2743,9 +2743,9 @@
       "judge_errors": [],
       "judgments": [],
       "timings": {
-        "retrieval": 0.0626909998118208,
-        "generation": 0.032489999966855976,
-        "total": 0.09518099977867678
+        "retrieval": 0.03023400017809763,
+        "generation": 0.0583109999752196,
+        "total": 0.08854500015331723
       },
       "usage": {
         "input_tokens": 33,
@@ -2814,9 +2814,9 @@
       "judge_errors": [],
       "judgments": [],
       "timings": {
-        "retrieval": 0.02263700002913538,
-        "generation": 0.02330799998162547,
-        "total": 0.04594500001076085
+        "retrieval": 0.041929999952117214,
+        "generation": 0.03067100010412105,
+        "total": 0.07260100005623826
       },
       "usage": {
         "input_tokens": 26,
@@ -2881,9 +2881,9 @@
       "judge_errors": [],
       "judgments": [],
       "timings": {
-        "retrieval": 0.016317000017807004,
-        "generation": 0.0009000000318337698,
-        "total": 0.017217000049640774
+        "retrieval": 0.02075300017168047,
+        "generation": 0.0008269998943433166,
+        "total": 0.021580000066023786
       },
       "usage": {
         "input_tokens": 0,

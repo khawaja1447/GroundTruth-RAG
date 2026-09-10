@@ -16,7 +16,7 @@ p3 winner (no generation stages)          100.0%            0.0%         0.0%
 + lost-in-the-middle order                100.0%            0.0%         0.0%
 + query rewriting                         100.0%            0.0%         0.0%
 + claim verification                      100.0%            0.0%         0.0%
-+ refusal (margin)                          0.0%           69.2%         0.0%
++ refusal (top_score)                      25.0%            7.7%         0.0%
 ```
 
 Three things to read out of it.
@@ -30,53 +30,90 @@ questions.** That is the hallucination path, quantified. It is not a
 regression introduced here — it is what the pipeline has always done, now
 measured.
 
-**Turning refusal on fixes that and costs 69% false refusals.** Catching all
-four unanswerable questions means declining nine of the thirteen answerable
-ones. That is not a usable system, and the number says so plainly.
+**Turning refusal on refuses 75% of them for a 7.7% false-refusal cost.**
+Three of four unanswerable questions correctly declined, at the price of
+wrongly declining one of thirteen answerable ones. That is a usable operating
+point — and reaching it required a corpus fix, not a better threshold. See
+below.
 
 ---
 
-## 2. Why refusal is hard here
+## 2. Refusal: a conclusion this project got wrong, then corrected
 
-The refusal threshold was chosen from a measured curve, per the exit gate.
-The curve says the signal is not good enough.
+The threshold is chosen from a measured curve, per the exit gate. The
+interesting part is that the curve gave two different answers before and
+after an unrelated corpus fix.
+
+### What was measured first
 
 ```
-signal         best J   @ correct   @ false    minimum usable ceiling
-top_score      +0.019         25%       23%                       23%
-mean_score     +0.154        100%       85%                       38%
-margin         +0.308        100%       69%                       23%
+signal         best J   @ correct   @ false    (a coin flip scores 0.0)
+top_score      +0.019         25%       23%
+mean_score     +0.154        100%       85%
+margin         +0.308        100%       69%
 ```
 
-A perfect separator scores J = +1.0; a coin flip scores 0.0. `top_score` at
-+0.019 is a coin flip. `margin` is the best of the three and still needs a
-69% false-refusal rate to catch every unanswerable question.
-
-**No operating point exists at a 5% false-refusal ceiling on any signal.**
-`scripts/refusal_curve.py` reports that and exits non-zero rather than
-returning a threshold that happens to satisfy the constraint by refusing
-nothing.
-
-### The degenerate-point trap
-
-The first version of `choose_operating_point` returned a threshold with 0%
-correct refusals and 0% false refusals, and called it the answer. It
-satisfies any ceiling — by never refusing. A criterion that can be met by
-doing nothing is not a criterion, so `RefusalPoint.degenerate` now identifies
-those points and the selector rejects them by default.
-
-### The conclusion
-
-**Retrieval-derived confidence is the wrong place to make this decision.** The
+No operating point existed at any sane ceiling. The conclusion drawn was
+architectural: *retrieval confidence cannot decide this, because the
 retriever returns its best five chunks whether or not any of them answer the
-question; the scores reflect similarity within the corpus, not sufficiency
-for the question. The generator sees the passage text and can tell the answer
-is not in it — which is why `AnthropicGenerator` returns a structured
-`refused` flag and the rubric instructs it that refusing is correct when the
-information is absent.
+question — so the decision belongs to the generator, which sees the passage
+text.*
 
-That is an architectural finding produced by measurement, and it is the
-opposite of what the plan assumed when it listed "tune the threshold".
+**That conclusion was wrong**, and it was wrong because it was measured over
+a defective corpus.
+
+### What the same measurement says now
+
+```
+signal         best J   @ correct   @ false
+top_score      +0.673         75%        8%
+mean_score     +0.442         75%       31%
+margin         +0.346         50%       15%
+```
+
+The ranking inverted — `top_score` went from worst (+0.019, a coin flip) to
+best (+0.673) — and a viable operating point appeared:
+
+```
+OPERATING POINT: threshold=0.0324 on top_score
+  correct refusals: 75.0% (3/4 unanswerable)
+  false refusals:    7.7% (1/13 answerable)
+  criterion: maximise correct refusals subject to false refusal <= 10%
+```
+
+### What changed, and why it mattered
+
+Phase 5 excluded **front matter** — the cover page and table of contents —
+from the corpus. That was done as corpus hygiene and reported, at the time,
+as having no measurable effect: nDCG, recall and MRR were identical to four
+decimal places.
+
+Those retrieval metrics genuinely did not move. But the table of contents
+names every section heading, so it matched *unanswerable* questions about as
+well as it matched real ones — giving them a spuriously high top score and
+collapsing the very gap the refusal signal depends on. The pollution was
+invisible in retrieval quality and fatal to refusal calibration.
+
+Two lessons this project would not have learned by reasoning:
+
+- **A component can be blocked by a defect in a different component**, and
+  the metrics for the blocked component are the only place it shows up.
+- **A null result is not always a null result.** "No effect on nDCG" was
+  true and was reported honestly; it was also not the whole story, and only
+  re-running the full measurement surfaced that.
+
+The correction was found by `scripts/reproduce.py`, which re-derives every
+published figure and fails when one moves. Without it, `docs/` would still
+carry the superseded conclusion.
+
+### Still true
+
+At a **5% ceiling** no signal produces an operating point, and
+`scripts/refusal_curve.py` exits non-zero saying so. 7.7% is the achievable
+floor here. And the degenerate-point guard still matters: an early version of
+the selector returned a threshold with 0% correct *and* 0% false refusals and
+called it the answer — it satisfies any ceiling by never refusing, and a
+criterion that can be met by doing nothing is not a criterion.
 
 ---
 
@@ -190,7 +227,7 @@ retriever it will actually be deployed with.
 | Gate | Status |
 |---|---|
 | Zero fabricated citations across the eval set | **Met.** 0.0% on every ladder row, asserted by a test |
-| Refusal operating point chosen from a measured curve | **Met**, and the finding is that no acceptable point exists — documented above with the criterion and the numbers |
+| Refusal operating point chosen from a measured curve | **Met.** 75% correct refusals at 7.7% false, threshold 0.0324 on `top_score`, criterion stated. An earlier reading of the same curve said no point existed; §2 records why that was wrong |
 | Multi-turn rewriting passes a conversational slice | **Partially met.** The heuristic rewriter makes `fil-017` retrievable and is tested; the slice is one question |
 | Groundedness improved at equal retrieval quality | **Not established.** See below |
 

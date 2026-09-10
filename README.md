@@ -4,10 +4,11 @@ A retrieval system over corporate financial filings where **every
 architectural decision is justified by a measured delta** — and the evaluation
 harness that produces those numbers is the actual product.
 
-> **Status: Phases 1–6 complete.** Corpus pipeline, evaluation harness, the
-> retrieval ablation program,
-> grounded generation, serving and hardening are built, tested and running —
-> 495 tests, no network, no API key. Phase 7 (ship) is next.
+> **Status: complete, Phases 1–7.** Corpus pipeline, evaluation harness, the
+> retrieval ablation program, grounded generation, serving and hardening are
+> built, tested and running — **503 tests, no network, no API key, $0.00**.
+> Every figure below is re-derived from source by `make reproduce`, which
+> fails if one moves.
 > Docs: [`corpus.md`](docs/corpus.md),
 > [`eval-methodology.md`](docs/eval-methodology.md),
 > [`ablation.md`](docs/ablation.md), [`generation.md`](docs/generation.md),
@@ -28,9 +29,10 @@ No API key, no network, no corpus needed:
 ```bash
 git clone <repo> && cd groundtruth-rag
 make install
-make test           # 495 tests, stdlib only
+make test           # 503 tests, stdlib only
 make validate       # dataset structure + corpus join
 make eval-fast      # full deterministic eval
+make reproduce      # re-derive every figure in this README; fails if one moved
 ```
 
 To build the real corpus (the only step that needs the network):
@@ -76,37 +78,66 @@ is the point of the exercise:
 ## What is actually built
 
 ```
-src/gtrag/                # Phase 1 — the corpus pipeline and baseline
-├── ingest/
-│   ├── document.py       # document model + Span (the anchoring primitive)
-│   ├── edgar.py          # SEC client: UA enforcement, 10 req/s token bucket
-│   └── parse.py          # HTML -> text, sections (TOC trap), tables
-├── chunking/base.py      # Chunker protocol + fixed-token baseline, span-tracked
+src/gtrag/
+├── ingest/                  # P1  corpus pipeline
+│   ├── document.py          #     document model + Span (the anchoring primitive)
+│   ├── edgar.py             #     SEC client: UA enforcement, 10 req/s token bucket
+│   └── parse.py             #     HTML -> text, sections (TOC trap), tables
+├── chunking/
+│   ├── base.py              # P1  Chunker protocol + fixed-token baseline, span-tracked
+│   └── strategies.py        # P3  recursive, structure-aware, sentence-window,
+│                            #     parent-document, semantic
 ├── index/
-│   ├── embed.py          # Embedder protocol: hashing (offline) + sentence-transformers
-│   └── store.py          # exhaustive cosine index, embedder-mismatch guard
-├── generate/generator.py # extractive (offline) + Anthropic, both refusable
-├── baseline.py           # the Phase 1 control system
-└── cli.py                # ingest / index / query / inspect
+│   ├── embed.py             # P1  Embedder protocol: hashing + sentence-transformers
+│   └── store.py             # P1  exhaustive cosine index, embedder-mismatch guard
+├── retrieve/
+│   ├── retrievers.py        # P3  dense, BM25, RRF hybrid, reranking, metadata filter
+│   └── rewrite.py           # P4  multi-turn query rewriting (heuristic + LLM)
+├── generate/
+│   ├── context.py           # P4  dedup -> budget -> lost-in-the-middle order
+│   ├── refusal.py           # P4  confidence signals, refusal curve, operating point
+│   ├── verify.py            # P4  claim-level support, numbers checked separately
+│   └── generator.py         # P1  extractive (offline) + Anthropic, both refusable
+├── serve/
+│   ├── cache.py             # P5  semantic cache: chunk + corpus-version invalidation
+│   ├── degradation.py       # P5  circuit breaker, fallbacks, required stages
+│   ├── telemetry.py         # P5  per-stage tracing, Prometheus, bounded histograms
+│   ├── service.py           # P5  the request pipeline
+│   └── app.py               # P5  FastAPI surface, streaming, health, 503 path
+├── security/
+│   ├── access.py            # P6  role ACLs, deny-by-default, pre-filter predicate
+│   └── injection.py         # P6  7-payload corpus, detection, sanitisation
+├── ablation.py              # P3  the sweep configs and the ladders
+├── grounded.py              # P4  the assembled system
+├── baseline.py              # P1  the control it is measured against
+└── cli.py                   #     ingest / index / query / inspect
 
-evals/                    # Phase 2 — the measurement layer
-├── spans.py              # span -> per-chunking relevance resolution
-├── types.py          # labeled-question model + the invariants that keep it honest
-├── dataset.py        # loading, corpus join checks, composition reporting
+evals/                       # P2  the measurement layer — the actual product
+├── spans.py                 #     span -> per-chunking relevance resolution
+├── types.py                 #     labeled-question model + the invariants that keep it honest
+├── dataset.py               #     loading, corpus join checks, composition reporting
 ├── metrics/
-│   ├── retrieval.py  # recall, precision, MRR, graded nDCG — hand-implemented
-│   ├── generation.py # refusal 2x2, citation validity, claim splitting
-│   └── stats.py      # bootstrap CIs, paired bootstrap
+│   ├── retrieval.py         #     recall, precision, MRR, graded nDCG — hand-implemented
+│   ├── generation.py        #     refusal 2x2, citation validity, claim splitting
+│   └── stats.py             #     bootstrap CIs, paired bootstrap, statistical power
 ├── judges/
-│   ├── base.py       # judge protocol, scales, rubric versioning
-│   ├── llm_judge.py  # Anthropic-backed, structured output, cached
-│   └── rubrics/      # 4 versioned rubrics with worked examples
-├── calibration.py    # weighted Cohen's kappa + the human-label round trip
-├── cache.py          # content-addressed SQLite response cache
-├── runner.py         # config hashing, execution, scoring, result files
-├── report.py         # run summaries, slice tables, paired comparisons
-├── gate.py           # the CI regression gate
-└── cli.py            # 8 commands
+│   ├── base.py              #     judge protocol, scales, rubric versioning
+│   ├── llm_judge.py         #     Anthropic-backed, structured output, cached
+│   └── rubrics/             #     4 versioned rubrics with worked examples
+├── calibration.py           #     weighted Cohen's kappa + the human-label round trip
+├── cache.py                 #     content-addressed SQLite response cache
+├── runner.py                #     config hashing, execution, scoring, result files
+├── report.py                #     run summaries, slice tables, paired comparisons
+├── gate.py                  #     the CI regression gate
+└── cli.py                   #     8 commands
+
+scripts/
+├── reproduce.py             # P7  re-derive every published figure; --check fails on drift
+├── run_sweep.py             # P3  the ablation program
+├── refusal_curve.py         # P4  the tradeoff curve and operating-point selection
+├── security_report.py       # P6  leak test + injection report, non-zero on a leak
+├── loadtest.py              # P5  concurrency ramp, reports the knee
+└── build_ablation_table.py  # P3  the table, generated rather than typed
 ```
 
 ### Design decisions worth defending
@@ -183,29 +214,36 @@ Running the full ladder on the smoke corpus, **every delta came back
 inconclusive**:
 
 ```
-baseline: fixed + dense      0.7409
-+ structure-aware chunking   0.7527   +0.0118 [-0.1018, +0.1171]  inconclusive
+baseline: fixed + dense      0.8196
++ structure-aware chunking   0.7527   -0.0669 [-0.2088, +0.0568]  inconclusive
 + bm25 hybrid (RRF)          0.8297   +0.0769 [+0.0000, +0.1941]  inconclusive
 + reranking                  0.7859   -0.0438 [-0.1420, +0.0568]  inconclusive
-+ metadata pre-filtering     0.8379   +0.0520 [-0.0971, +0.1728]  inconclusive
++ metadata pre-filtering     0.8663   +0.0804 [-0.0888, +0.2295]  inconclusive
 ```
 
 That is the harness working. With n=13 the interval on any paired difference
-is about ±0.11, so an 8-point move is indistinguishable from noise. Claiming
+is about ±0.15, so an 8-point move is indistinguishable from noise. Claiming
 "+7.7 points from hybrid retrieval" off this data is precisely the unearned
 result the project exists to prevent.
+
+Two rungs go *down* and both stay in the table. The ladder is a fixed
+sequence of one-component steps, not a greedy search — dropping a losing rung
+would renumber every rung above it and destroy the attribution. And an
+interval spanning [-0.21, +0.06] supports "worse" no better than "better", so
+removing it would mean acting on exactly the noise the report refuses to act
+on in the other direction.
 
 An all-inconclusive ablation is ambiguous between "the components do nothing"
 and "the set is too small to tell" — so the harness answers that too:
 
 ```
-ndcg@10:   n=13, sd=0.1952 -> can resolve ~0.106; to detect 0.020: need ~367
+ndcg@10:   n=13, sd=0.2743 -> can resolve ~0.149; to detect 0.020: need ~723
 recall@10: n=13, sd=0.2774 -> can resolve ~0.151; to detect 0.020: need ~739
 ```
 
-The CI gate's 2-point nDCG threshold needs roughly **370 labeled questions**.
-That is a concrete next action, produced before any component decision was
-made on bad evidence.
+The CI gate's 2-point nDCG threshold needs roughly **720 labeled questions**,
+against the 220 the plan had budgeted. That is a concrete next action,
+produced before any component decision was made on bad evidence.
 
 ## Six chunking strategies, one labeling
 
@@ -237,7 +275,7 @@ on incomparable scales, and normalising them is a hidden hyperparameter.
 
 ---
 
-## Grounded generation, and where refusal actually belongs
+## Grounded generation, and a conclusion the project got wrong
 
 ```
 configuration                      answered_unans   false_refusal   fabricated
@@ -246,40 +284,127 @@ p3 winner (no generation stages)          100.0%            0.0%         0.0%
 + lost-in-the-middle order                100.0%            0.0%         0.0%
 + query rewriting                         100.0%            0.0%         0.0%
 + claim verification                      100.0%            0.0%         0.0%
-+ refusal (margin)                          0.0%           69.2%         0.0%
++ refusal (top_score)                      25.0%            7.7%         0.0%
 ```
 
 **Fabricated citations are zero on every row** — Phase 4's hard gate, asserted
 by a test rather than claimed by a report. **Without a refusal policy the
 system answers 100% of unanswerable questions**, which is the hallucination
-path quantified. And **turning refusal on costs 69% false refusals** — catching
-four unanswerable questions means declining nine of thirteen answerable ones.
+path quantified. **Turning refusal on catches three of the four for the price
+of wrongly declining one answerable question in thirteen.**
 
-The refusal threshold was chosen from a measured curve, as the plan required.
-The curve's verdict is that the signal is not good enough:
+Getting there is the most instructive thing in the repository, because the
+first answer was wrong.
+
+### What Phase 4 measured, and published
 
 ```
-signal         best J   @ correct   @ false
-top_score      +0.019         25%       23%     (a coin flip scores 0.0)
+signal         best J   @ correct   @ false     (a coin flip scores 0.0)
+top_score      +0.019         25%       23%
 mean_score     +0.154        100%       85%
 margin         +0.308        100%       69%
 ```
 
-No operating point exists at a 5% false-refusal ceiling on any signal, and the
-script says so and exits non-zero rather than returning a threshold that
-satisfies the constraint by refusing nothing.
+No operating point existed at any sane ceiling, so the conclusion drawn was
+architectural: *retrieval confidence cannot decide this — the retriever
+returns its best five chunks whether or not any of them answer the question,
+so the decision belongs to the generator, which sees the passage text.*
 
-**The conclusion is architectural:** retrieval confidence is the wrong place to
-decide this. The retriever returns its best five chunks whether or not any of
-them answer the question. The generator sees the passage text and can tell the
-answer is not there — which is why the real generator returns a structured
-`refused` flag. That finding is the opposite of what the plan assumed when it
-said "tune the threshold".
+### What the same measurement says now
 
-An early version of the selector returned a point with 0% correct *and* 0%
-false refusals and called it the answer. It satisfies any ceiling — by never
-refusing. A criterion satisfiable by doing nothing is not a criterion, so
-degenerate points are now rejected by default.
+```
+signal         best J   @ correct   @ false
+top_score      +0.673         75%        8%
+mean_score     +0.442         75%       31%
+margin         +0.346         50%       15%
+
+OPERATING POINT: threshold=0.0324 on top_score
+  criterion: maximise correct refusals subject to false refusal <= 10%
+```
+
+The ranking inverted — `top_score` went from worst to best — and the earlier
+conclusion did not survive.
+
+**What changed was not the threshold.** Phase 5 excluded the cover page and
+table of contents from the corpus, and reported at the time that it had *no
+measurable effect*: nDCG, recall and MRR were identical to four decimal
+places. That was true. It was also not the whole story. The table of contents
+names every section heading, so it matched **unanswerable** questions about as
+well as real ones — invisible in retrieval quality, and fatal to the very gap
+refusal calibration depends on.
+
+A component was being blocked by a defect in a different component, and the
+blocked component's metrics were the only place it showed.
+
+**This was caught by tooling, not by insight.** `scripts/reproduce.py` holds
+every published figure in a `PUBLISHED` table, re-derives all eighteen from
+source in eleven seconds, and exits non-zero when one moves. It moved ten of
+them at once. Without it, this README would still carry the superseded
+conclusion, stated just as confidently. The full account is in
+[`generation.md` §2](docs/generation.md).
+
+Still true, and still enforced: at a **5% ceiling** no signal produces an
+operating point and `make refusal-curve MAX_FALSE_REFUSAL=0.05` exits
+non-zero saying so. And an early version of the selector returned a point with
+0% correct *and* 0% false refusals and called it the answer — it satisfies any
+ceiling by never refusing. A criterion satisfiable by doing nothing is not a
+criterion, so degenerate points are rejected by default.
+
+---
+
+## Serving: making "production" load-bearing
+
+```
+trace -> cache lookup -> [degradable pipeline] -> cache store -> metrics
+```
+
+`make loadtest` runs a concurrency ramp and reports the knee. The result is
+worth stating because it is counter-intuitive:
+
+```
+ conc   reqs    p50 ms    p95 ms       rps  errors   cache
+    1    200      0.28      0.37    2806.3       0    96%
+   32    200      0.30      0.87    2315.4       0    96%
+```
+
+**Throughput falls as concurrency rises.** That is the GIL — the pipeline is
+pure-Python CPU work, so extra threads contend rather than help. The
+operational consequence is in the compose file: one CPU per replica, scale
+with replicas, not `--workers`. And these are *retrieval and assembly* only;
+a real deployment's p95 is dominated by the model and will be three orders of
+magnitude larger. Reporting sub-millisecond latency as end-to-end service
+latency would be dishonest.
+
+Three decisions the rest of the layer turns on:
+
+- **The hard part of caching is invalidation, not lookup.** Nothing in a
+  *question* tells you the answer went stale. Every entry records the chunk
+  ids it was derived from and the corpus version it was built against, so
+  re-ingesting a document drops exactly the answers that depended on it. The
+  similarity threshold is 0.95, deliberately high: a miss costs a
+  regeneration, a false positive costs correctness. Entries are partitioned by
+  caller role, so two principals never share an answer.
+- **Degrade, but never silently.** A circuit breaker opens on *consecutive*
+  failures rather than a failure rate — a component failing one request in ten
+  is degraded but usable, and opening on that takes a working dependency
+  offline. Responses carry `quality: "degraded"` and name the components,
+  because a silently degraded service looks healthy on every dashboard while
+  serving worse answers. The retrieval stage is `required=True` and has no
+  fallback: "degraded" must never mean "answered without retrieving", which is
+  not a degraded answer but a fabricated one.
+- **Latency is recorded per stage.** A p95 that says "1.2s" is not actionable;
+  one that attributes it to the reranker is. Every response carries a
+  `trace_id` honoured from an inbound header, so a user reporting a bad answer
+  hands you a string that pulls up which chunks were retrieved and how long
+  each stage took.
+
+A bug worth recording: `from __future__ import annotations` in the FastAPI
+module made every POST return `422: field required`. FastAPI resolves
+annotations against *module globals*, and the request models are defined
+inside `create_app` so pydantic stays a lazy import — so it fell back to
+treating the body as query parameters. A silent, total failure of every write
+endpoint, with nothing in the error pointing at the cause. Details in
+[`serving.md`](docs/serving.md).
 
 ---
 
@@ -372,6 +497,16 @@ broken judge gets through CI green.
 
 ## Reproducibility
 
+```bash
+make reproduce      # 18 figures, ~11s, no model call, $0.00
+```
+
+- **Every number this repository publishes is under contract.**
+  `scripts/reproduce.py` re-derives all of them from source and `--check`
+  exits non-zero when one moves. Changing a published figure is therefore a
+  visible edit to that file, in the same commit as the code change that caused
+  it. A number that can drift silently is not a result — and this is the tool
+  that caught the refusal conclusion above.
 - Run ids are hashes of the system config, judge config, metric config **and
   the dataset's content** — editing the eval set changes the hash, so a run
   cannot be mistaken for a re-run of a different set.
@@ -410,6 +545,31 @@ broken judge gets through CI green.
 | `make calibrate-export` | Sample a judged run for hand-labeling |
 | `make calibrate-report` | Judge/human agreement |
 | `make ablation` | Regenerate the ablation table |
+| `make reproduce` | Re-derive every published figure; fails if one moved |
+
+---
+
+## What this does not claim
+
+The most useful thing a measurement project can publish is the list of things
+it did not measure, because that is the list an unscrupulous version would
+quietly leave out.
+
+| Claim you might expect | Actual status |
+|---|---|
+| These retrieval numbers are results | **No.** Three fixture filings, 17 questions. `make ingest && make sweep` reruns identical code on the real corpus; until then every figure is a smoke test |
+| A component was shown to help | **No.** Every delta in the ladder is inconclusive, and the harness says how large the set must be (~720) before any of them could be |
+| Semantic chunking and neural reranking were evaluated | **No.** `SentenceTransformerEmbedder` and `CrossEncoderReranker` are written against documented interfaces and have never executed — no model weights here. The offline stand-ins report `neural: false` and `split_embedder_semantic: false` so a run made that way is identifiable, not quietly comparable |
+| The sentence-window collapse is a finding | **No.** It is an artifact of a bag-of-words embedder against 77 one-sentence candidates. The caveat travels with the number |
+| Groundedness improved | **Not established.** It is a judged metric and no judge has run here. The machinery, cache and calibration gate are built; the number needs an API key |
+| The judge is calibrated | **Not yet.** κ ≥ 0.60 is the gate and the round trip is implemented and tested; the human labels do not exist |
+| Prompt injection is handled | **No.** 0% behavioural success is immunity *by construction* — the extractive generator cannot follow instructions at all. That number is meaningless until a real model runs. What is real: 86% detection with the miss asserted by a test, and unconditional structural neutralisation |
+| The EDGAR client works | **Unverified.** `sec.gov` is blocked at this environment's gateway, so `HttpFetcher` has never made a live request. Logic is covered against recorded fixtures; expect to adjust `ITEM_PATTERNS` on first contact with real filers |
+| The container runs | **Unbuilt.** Docker is unavailable here. The Dockerfile and compose file are written, not exercised |
+| The load-test p99 is a service latency | **No.** In-process, retrieval and assembly only. `--url` drives a live server and is the honest way to claim one |
+
+Every one of these is stated the same way in the phase docs, next to the
+number it qualifies, rather than collected here to be forgotten.
 
 ---
 

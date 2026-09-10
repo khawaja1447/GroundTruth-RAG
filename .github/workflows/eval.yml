@@ -37,11 +37,17 @@ jobs:
 
       - name: Lint
         run: |
-          python -m ruff check src evals tests
-          python -m ruff format --check src evals tests
+          python -m ruff check src evals tests scripts
+          python -m ruff format --check src evals tests scripts
 
       - name: Test
         run: python -m pytest
+
+      - name: Reproduce published figures
+        # Every number the README and docs state, re-derived from source. Fails
+        # if a figure moved or if the prose still quotes a superseded one --
+        # which is how the refusal conclusion in docs/generation.md was caught.
+        run: python scripts/reproduce.py --check --out evals/results/reproduce.json
 
       - name: Validate eval set
         # --strict fails if any question is unverified, so a machine-written

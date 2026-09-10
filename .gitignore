@@ -21,5 +21,13 @@ corpus/
 # not scratch exports.
 evals/calibration/*.tmp.json
 
+# Sweep output and the reproduce report: 1.4MB of per-question detail that
+# `make sweep` and `make reproduce` regenerate in seconds. Committing them
+# means carrying a snapshot that nothing checks -- and the point of
+# scripts/reproduce.py is that the figures are checked, not archived. CI
+# uploads them as build artifacts instead.
+evals/results/sweep/
+evals/results/reproduce.json
+
 .env
 .DS_Store

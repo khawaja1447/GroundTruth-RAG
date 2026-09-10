@@ -344,11 +344,8 @@ ABLATION_LADDER: tuple[AblationConfig, ...] = (
 # Dimension 6: the Phase 4 stages, on top of the Phase 3 winner. Each rung
 # again adds exactly one component, so the delta is attributable.
 #
-# `+ refusal (margin)` uses the threshold the refusal curve identified as the
-# best available operating point for a retrieval-derived signal. It is
-# included precisely because the curve showed that signal to be weak: the
-# ladder should show what accepting a poor separator actually costs, rather
-# than the component being dropped on the strength of one J statistic.
+# The refusal rung uses the operating point the curve identifies, so the
+# ladder shows what that tradeoff actually costs rather than asserting it.
 _P4_BASE = {"chunker": "structure_aware", "bm25": True}
 
 GENERATION_LADDER: tuple[AblationConfig, ...] = (
@@ -365,11 +362,16 @@ GENERATION_LADDER: tuple[AblationConfig, ...] = (
         label="+ claim verification", rewriter="heuristic", verifier="lexical", **_P4_BASE
     ),
     AblationConfig(
-        label="+ refusal (margin)",
+        label="+ refusal (top_score)",
         rewriter="heuristic",
         verifier="lexical",
-        refusal_signal="margin",
-        refusal_threshold=0.0017,
+        # The operating point the refusal curve identifies at a 10% false-
+        # refusal ceiling: 75% correct refusals at 7.7% false. See
+        # docs/generation.md -- this became viable only once front-matter
+        # exclusion removed the universal false positive that was inflating
+        # confidence on unanswerable questions.
+        refusal_signal="top_score",
+        refusal_threshold=0.0324,
         **_P4_BASE,
     ),
 )

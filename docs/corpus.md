@@ -202,7 +202,8 @@ table extraction, span arithmetic, span→relevance resolution under two
 different chunkings, chunk-id stability, the index and its embedder guard, the
 EDGAR client's listing and URL construction against a recorded submissions
 response, the rate limiter under threads, and the assembled baseline answering
-end to end. 257 tests, no network, no API key.
+end to end. 257 tests at the close of this phase, no network, no API key —
+503 across the finished project.
 
 **Not verified here:** a live EDGAR fetch. The environment this was built in
 blocks `sec.gov` and `data.sec.gov` at the network gateway, so `HttpFetcher`

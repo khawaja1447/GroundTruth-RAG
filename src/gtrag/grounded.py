@@ -158,7 +158,7 @@ class GroundedRagSystem:
             timings["total"] = sum(timings.values())
             return SystemResponse(
                 answer="",
-                retrieved=assembled.chunks,
+                retrieved=tuple(retrieved),
                 refused=True,
                 timings=timings,
                 metadata={"trace": {**trace.to_dict(), "refused_by_policy": True}},
@@ -184,7 +184,16 @@ class GroundedRagSystem:
 
         return SystemResponse(
             answer=answer,
-            retrieved=assembled.chunks,
+            # The RETRIEVER's ranking, not the assembled context.
+            #
+            # `lost_in_the_middle_order` deliberately moves rank 2 to the end
+            # of the context, because that is where a model attends. Reporting
+            # that layout as the retrieval ranking makes every rank-sensitive
+            # metric -- nDCG, MRR -- measure the presentation decision instead
+            # of the retriever. Access filtering and sanitisation are included
+            # because they change *what* was retrieved; dedup and reordering
+            # change only what the reader sees, and are recorded in the trace.
+            retrieved=tuple(retrieved),
             citations=citations,
             refused=generated.refused,
             usage=generated.usage,

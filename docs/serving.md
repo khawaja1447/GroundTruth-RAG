@@ -156,7 +156,7 @@ explaining why it must not have one.
 
 ---
 
-## 7. Front matter — a fix with a null result
+## 7. Front matter — a "null result" that was not one
 
 Investigating a demo query surfaced a real corpus defect: the cover page and
 table of contents were being indexed. The TOC names every section heading, so
@@ -167,25 +167,36 @@ positive that retrieves for everything and answers nothing.
 section, and every chunker excludes it by default (`exclude_front_matter`,
 configurable so the decision stays measurable).
 
-**Measured: no change.** nDCG@10, recall@10 and MRR were identical to four
-decimal places with and without it, on this eval set.
+### The measurement at the time
 
-```
-with front matter        chunks=15   nDCG@10=0.7170  recall@10=1.0000  MRR=0.6308
-front matter excluded    chunks=12   nDCG@10=0.7170  recall@10=1.0000  MRR=0.6308
-```
+**No change.** nDCG@10, recall@10 and MRR were identical to four decimal
+places with and without it, on the `structure_aware` configuration. The
+change was kept as principled corpus hygiene — it removes 20% of the corpus
+for free — and was **explicitly not claimed** as a quality improvement.
 
-Front matter *does* reach the top 5 on 6 of 17 questions, so the pollution is
-real. It does not move the metrics because with only 15 chunks, dropping
-three simply shifts other non-gold chunks into the vacated slots — the gold
-chunks' ranks are unchanged. On a corpus of thousands of chunks, where a
-universal false positive competes against genuinely relevant passages, the
-effect would not be neutral.
+### What that measurement missed
 
-The change is kept: it is principled (front matter contains no answers by
-construction) and it removes 20% of the corpus for free. But it is **not**
-claimed as a quality improvement, because on the evidence available it is not
-one.
+It was true and it was not the whole story.
+
+The table of contents matched *unanswerable* questions about as well as it
+matched real ones, giving them a spuriously high retrieval score. That does
+not move retrieval quality — the gold chunks still rank where they ranked —
+but it destroys the gap between answerable and unanswerable that refusal
+calibration depends on.
+
+Excluding front matter moved the best refusal signal from **J = +0.019 (a
+coin flip) to J = +0.673**, and turned "no viable operating point at any
+sane ceiling" into "75% of unanswerable questions correctly refused at a 7.7%
+false-refusal cost". The full correction is in
+[`generation.md` §2](generation.md).
+
+It also improved the fixed-chunker baseline from 0.7409 to 0.8196 nDCG@10 —
+the `structure_aware` configuration used for the original comparison happened
+to be the one least affected.
+
+The lesson kept here: **measuring one component's metrics is not the same as
+measuring the change.** The honest report at the time was "no effect on
+retrieval quality", which was accurate and incomplete.
 
 ---
 

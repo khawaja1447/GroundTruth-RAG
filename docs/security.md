@@ -170,7 +170,7 @@ Categories the eval set surfaces, with what addresses each:
 | Temporal confusion | Near-identical boilerplate across fiscal years | Metadata pre-filtering (Phase 3) |
 | Entity confusion | Peer companies share vocabulary | Metadata pre-filtering; two-company questions deliberately unfiltered |
 | Exact-figure miss | Dense retrieval scores similarity, not presence | BM25 hybrid (Phase 3) |
-| Hallucination on unanswerable | No refusal capability | Refusal — but see Phase 4: no viable retrieval-derived signal |
+| Hallucination on unanswerable | No refusal capability | Refusal on `top_score`, 75% caught at 7.7% false (Phase 4) — but only after front matter was excluded |
 | Fabricated citation | Model cites a chunk it did not receive | Deterministic citation validation, hard zero (Phase 4) |
 | Front-matter false positive | TOC names every section heading | Front-matter exclusion (Phase 5) |
 | Cross-tenant leak | Post-filtering, or untagged documents | Pre-filter + deny-by-default (this phase) |

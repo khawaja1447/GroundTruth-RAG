@@ -10,22 +10,41 @@ Sweep each dimension, keep what wins, and record what loses.
 inconclusive.**
 
 ```
-baseline: fixed + dense        nDCG@10 = 0.7409
-+ structure-aware chunking     nDCG@10 = 0.7527   delta +0.0118 [-0.1018, +0.1171]  inconclusive
+baseline: fixed + dense        nDCG@10 = 0.8196
++ structure-aware chunking     nDCG@10 = 0.7527   delta -0.0669 [-0.2088, +0.0568]  inconclusive
 + bm25 hybrid (RRF)            nDCG@10 = 0.8297   delta +0.0769 [+0.0000, +0.1941]  inconclusive
 + reranking                    nDCG@10 = 0.7859   delta -0.0438 [-0.1420, +0.0568]  inconclusive
-+ metadata pre-filtering       nDCG@10 = 0.8379   delta +0.0520 [-0.0971, +0.1728]  inconclusive
++ metadata pre-filtering       nDCG@10 = 0.8663   delta +0.0804 [-0.0888, +0.2295]  inconclusive
 ```
 
 That is not a failure of the components. It is the harness doing its job:
 with n=13 scoreable questions, the confidence interval on any paired
-difference is about ±0.11, so a 4-point or even an 8-point move cannot be
+difference is about ±0.15, so a 4-point or even an 8-point move cannot be
 distinguished from noise. Reporting "+0.077 from hybrid retrieval" off this
 data would be exactly the kind of unearned claim the whole project exists to
 prevent.
 
 The useful output is therefore not a ranking of components. It is a number
 telling you what to do next.
+
+### Two rungs go *down*, and they stay in
+
+`structure_aware` and `reranking` both score below the rung beneath them. The
+temptation is to drop them and publish the monotone ladder that remains.
+
+They stay for two reasons. The ladder is a **fixed sequence of one-component
+steps**, not a greedy search — dropping a losing rung renumbers everything
+above it and destroys the attribution the whole structure exists to provide.
+And both deltas are *inconclusive*: an interval spanning [-0.21, +0.06]
+supports "worse" no better than it supports "better", so removing the rung
+would be acting on the same noise the report refuses to act on in the other
+direction.
+
+On a corpus of three short filings, `fixed` produces five chunks and
+`structure_aware` twelve. Fewer, larger chunks are simply easier to rank when
+the whole corpus fits in a top-5. That is a property of the smoke corpus, not
+a verdict on the strategy — and it is why the caveat below about corpus size
+applies to more than `parent_document`.
 
 ### How large does the eval set need to be?
 
@@ -34,15 +53,18 @@ set of this size can resolve, and inverts it to give the n required for a
 target effect:
 
 ```
-ndcg@10:   n=13, sd=0.1952  -> can resolve ~0.106; to detect 0.020: need ~367
+ndcg@10:   n=13, sd=0.2743  -> can resolve ~0.149; to detect 0.020: need ~723
 recall@10: n=13, sd=0.2774  -> can resolve ~0.151; to detect 0.020: need ~739
 ```
 
-So the CI gate's 2-point nDCG threshold needs roughly **370 questions**, not
-220 — and recall, which is noisier per question, needs about twice that. That
-is a concrete, actionable finding about the eval set, produced by the
-measurement program before a single component decision was made on bad
-evidence.
+So the CI gate's 2-point nDCG threshold needs roughly **720 questions**, not
+the 220 the plan budgeted for. That is a concrete, actionable finding about
+the eval set, produced by the measurement program before a single component
+decision was made on bad evidence.
+
+The pair measured is the bottom and top of the ladder, which is the widest
+spread the set contains and therefore the honest estimate of its variance;
+narrower pairs give smaller `n` and would flatter the set.
 
 Without this diagnostic, an all-inconclusive ablation is ambiguous between
 "these components do nothing" and "this eval set is too small to say" —
@@ -59,20 +81,25 @@ opposite conclusions with opposite next actions.
 Six strategies, graded from one human labeling.
 
 ```
-fixed 512/50 (baseline)   6 chunks   nDCG@10 = 0.7409   recall@10 = 0.9231
-recursive                 5 chunks   nDCG@10 = 0.8576   recall@10 = 1.0000
-structure-aware          15 chunks   nDCG@10 = 0.7527   recall@10 = 0.9231
-sentence-window w=2      89 chunks   nDCG@10 = 0.2417   recall@10 = 0.2009
-parent-document          20 chunks   nDCG@10 = 0.5202   recall@10 = 0.6026
-semantic p25             29 chunks   nDCG@10 = 0.7225   recall@10 = 0.9231
+fixed 512/50 (baseline)   5 chunks   nDCG@10 = 0.8196   recall@10 = 1.0000
+recursive                 4 chunks   nDCG@10 = 0.8326   recall@10 = 1.0000
+structure-aware          12 chunks   nDCG@10 = 0.7527   recall@10 = 0.9231
+sentence-window w=2      77 chunks   nDCG@10 = 0.2678   recall@10 = 0.2162
+parent-document          17 chunks   nDCG@10 = 0.5482   recall@10 = 0.6538
+semantic p25             28 chunks   nDCG@10 = 0.7225   recall@10 = 0.9231
 ```
+
+Every chunk count here is lower than it was before Phase 5 excluded front
+matter — the cover page and table of contents were about a fifth of the
+corpus. `docs/serving.md` §7 records why removing them mattered far more than
+the retrieval metrics said at the time.
 
 ### Reading this honestly
 
 **Sentence-window's collapse is an artifact of the offline embedder, not a
 finding about the strategy.** `HashingEmbedder` is bag-of-words; a single
 sentence gives it four or five content terms to work with, which is far too
-sparse to rank against 89 candidates. The strategy is designed for a semantic
+sparse to rank against 77 candidates. The strategy is designed for a semantic
 embedder, where a sentence embeds densely. Re-run with
 `--embedder sentence-transformers` before drawing any conclusion. The same
 caveat applies to `semantic` chunking, which splits on embedding distance and
@@ -80,7 +107,7 @@ is therefore measuring vocabulary overlap rather than meaning here — its
 config records `split_embedder_semantic: false` so a run made that way is
 identifiable rather than quietly comparable.
 
-**Parent-document is penalised by corpus size**, not by design: with 20
+**Parent-document is penalised by corpus size**, not by design: with 17
 parents over three short filings, returning whole parents means returning a
 large fraction of the corpus per query.
 
@@ -171,11 +198,20 @@ why Phase 6 builds on this.
 make sweep-chunking        # dimension 1 alone
 make sweep                 # the full ladder, with deltas and power
 make ablation              # regenerate the Markdown table from result files
+make reproduce             # re-derive every figure on this page and fail if one moved
 ```
 
 The sweep caches indexes on (chunker config, embedder), so varying only the
 retriever does not re-embed the corpus per row. Embedding dominates runtime,
 and a sweep that is slow to run is a sweep that stops being run.
+
+**Every number on this page is under contract.** `scripts/reproduce.py` holds
+a `PUBLISHED` table of all eighteen figures the repository states, re-derives
+them from source in about eleven seconds with no model call, and `--check`
+exits non-zero when one moves. Changing a published number is therefore a
+visible edit to that file in the same commit as the code change that caused
+it — which is how the front-matter correction in
+[`generation.md` §2](generation.md) was found rather than shipped.
 
 ---
 

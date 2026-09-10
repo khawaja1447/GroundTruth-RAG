@@ -7,8 +7,11 @@ COMPANIES    ?= 10
 YEARS        ?= 3
 CHUNK_TOKENS ?= 512
 EMBEDDER     ?= hashing
-SIGNAL              ?= margin
-MAX_FALSE_REFUSAL   ?= 0.05
+# The measured winner and the ceiling it clears. `MAX_FALSE_REFUSAL=0.05`
+# still exits non-zero -- no signal produces an operating point there, and the
+# script says so rather than returning one that refuses nothing.
+SIGNAL              ?= top_score
+MAX_FALSE_REFUSAL   ?= 0.10
 PORT                ?= 8000
 REQUESTS            ?= 200
 Q            ?= What was total net revenue in the most recent fiscal year?
@@ -17,7 +20,7 @@ RUN     ?= $(shell ls -t evals/results/*.json 2>/dev/null | head -1)
 .PHONY: help install install-judge install-embed test lint ingest index query \
         serve loadtest docker-build docker-up security \
         sweep sweep-chunking sweep-generation refusal-curve validate stats eval eval-fast baseline gate compare calibrate-export \
-        calibrate-report ablation clean
+        calibrate-report ablation reproduce clean
 
 help:  ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -45,8 +48,8 @@ test:  ## Run the test suite (no API key, no network)
 	$(PY) -m pytest
 
 lint:  ## Lint and format-check
-	$(PY) -m ruff check src evals tests
-	$(PY) -m ruff format --check src evals tests
+	$(PY) -m ruff check src evals tests scripts
+	$(PY) -m ruff format --check src evals tests scripts
 
 sweep:  ## Run the full ablation ladder (deltas + statistical power)
 	$(PY) scripts/run_sweep.py --sweep both $(if $(DOCS),--docs $(DOCS),)
@@ -104,6 +107,9 @@ calibrate-report:  ## Judge/human agreement (Cohen's kappa) -- gate is kappa >= 
 
 ablation:  ## Regenerate the ablation table from every result file
 	$(PY) scripts/build_ablation_table.py
+
+reproduce:  ## Re-derive every published figure and fail if one moved
+	$(PY) scripts/reproduce.py --check --out evals/results/reproduce.json
 
 clean:  ## Remove caches and generated artifacts (keeps results and baselines)
 	rm -rf .pytest_cache **/__pycache__ evals/.cache
